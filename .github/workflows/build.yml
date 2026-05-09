@@ -35,7 +35,7 @@ jobs:
 
       - name: Compile kernel
         run: |
-          for src in openkernel pmm paging kheap vga io usb hid_keyboard shell ps2_keyboard idt ramfs timer process scheduler switch_to vm tss gdt syscall elf fs gpt disk pic interrupt_handlers user_bin; do
+          for src in openkernel pmm paging kheap vga io usb hid_keyboard shell ps2_keyboard idt ramfs timer process scheduler switch_to vm tss gdt syscall elf fs gpt disk pic interrupt_handlers user_bin serial rtc vfs; do
             if [ -f "src/${src}.c" ]; then
               gcc -m64 -c "src/${src}.c" -o "obj/${src}.o" \
                 -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
