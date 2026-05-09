@@ -51,6 +51,53 @@ A pure 64-bit operating system built from scratch with modern Open* architecture
     └── build.yml      # GitHub Actions CI
 ```
 
+## Installation
+
+### Quick Start (Pre-built Binary)
+
+Download the latest release from GitHub:
+
+1. Go to [OpenSYS Releases](https://github.com/CazyUndee/OpenSYS/releases)
+2. Download the latest release (e.g., v0.4.0)
+3. Choose either `os.iso` (bootable ISO) or `openkernel.bin` (raw kernel)
+
+### Running with QEMU
+
+**Option 1: Boot from ISO**
+```bash
+qemu-system-x86_64 -cdrom os.iso -nographic -m 128
+```
+
+**Option 2: Boot kernel directly**
+```bash
+qemu-system-x86_64 -kernel openkernel.bin -nographic -m 128
+```
+
+**Option 3: Boot with serial output**
+```bash
+qemu-system-x86_64 -kernel openkernel.bin -serial stdio -m 128
+```
+
+**Option 4: Boot with graphical output**
+```bash
+qemu-system-x86_64 -kernel openkernel.bin -m 128
+```
+
+### Running on Real Hardware
+
+1. **USB Boot (Recommended)**
+   - Download `os.iso` from the release
+   - Use a tool like Rufus (Windows) or dd (Linux) to write the ISO to a USB drive
+   - Boot from the USB drive
+
+2. **CD/DVD Boot**
+   - Burn `os.iso` to a CD/DVD
+   - Boot from the optical drive
+
+### Building from Source
+
+See the [Build Instructions](#build-instructions) section below.
+
 ## Prerequisites
 
 ### Windows (MSYS2)
@@ -72,7 +119,7 @@ Add to PATH:
 sudo apt-get install gcc nasm qemu-system-x86 grub-pc-bin xorriso
 ```
 
-## Building
+## Build Instructions
 
 ```bash
 make check     # Verify tools
