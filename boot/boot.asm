@@ -6,28 +6,16 @@
 ; 3. Jump to 64-bit OpenKernel
 
 section .multiboot
-align 8
+align 4
 mb_header:
-    dd 0xE85250D6      ; OpenKernel Boot Loader
-    ; Multiboot 2 compliant header
-    dd 0                    ; Architecture (i386)
-    dd mb_header_end - mb_header
-    dd -(0xE85250D6 + 0 + (mb_header_end - mb_header))
-
-    ; Framebuffer tag
-    align 8
-    dw 5                    ; Type = framebuffer
-    dw 0                    ; Flags
-    dd 20                   ; Size
-    dd 1024                 ; Width
-    dd 768                  ; Height
-    dd 32                   ; Depth
-
-    ; End tag
-    align 8
-    dw 0
-    dw 0
-    dd 8
+    dd 0x1BADB002              ; Multiboot magic number
+    dd (mb_header_end - mb_header) ; Flags
+    dd -(0x1BADB002 + (mb_header_end - mb_header)) ; Checksum
+    dd mb_header               ; Header address
+    dd 0x200000                ; Load address
+    dd 0x200000                ; Load end address
+    dd 0x200000                ; BSS end address
+    dd 0x200000                ; Entry address
 mb_header_end:
 
 section .bss
@@ -54,7 +42,7 @@ gdt64:
     dw $ - gdt64 - 1
     dq gdt64
 
-section .text
+section .boot
 bits 32
 global _start
 extern kernel_main

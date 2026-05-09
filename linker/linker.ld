@@ -2,18 +2,21 @@ ENTRY(_start)
 
 SECTIONS
 {
-    /* Load kernel at 2MB (leaves room for bootloader) */
-    . = 0x200000;
-
-    /* Boot section first (contains multiboot header) */
-    .boot :
+    /* Multiboot header must be at the very beginning (offset 0) */
+    . = 0;
+    
+    .multiboot :
     {
         *(.multiboot)
     }
 
-    /* 64-bit code */
-    .text :
+    /* Load kernel at 2MB (leaves room for bootloader) */
+    . = 0x200000;
+
+    /* Boot code */
+    .boot :
     {
+        *(.boot)
         *(.text)
         *(.text.*)
     }
