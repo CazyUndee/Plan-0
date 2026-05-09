@@ -1,6 +1,6 @@
 # OpenSYS OS v0.4.0
 
-A pure 64-bit operating system built from scratch with modern Open* architecture.
+A pure 64-bit operating system built from scratch with modern Open architecture.
 
 ## Features
 
