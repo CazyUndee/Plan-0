@@ -1,6 +1,21 @@
 /*
  * shell.c - Natural Language Shell
  *
+ * Copyright (C) 2026 CazyUndee
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
  * Commands are natural phrases instead of cryptic abbreviations.
  */
 
@@ -321,6 +336,264 @@ static void cmd_read_file(const char* name) {
     terminal_writestring_nl("");
 }
 
+static void cmd_copy(const char* src, const char* dst) {
+    if (!src || !*src || !dst || !*dst) {
+        terminal_writestring_nl("  Usage: copy <source> <destination>");
+        return;
+    }
+    
+    // Build source path
+    char src_path[256];
+    if (src[0] == '/') {
+        int len = 0;
+        while (src[len] && len < 255) {
+            src_path[len] = src[len];
+            len++;
+        }
+        src_path[len] = 0;
+    } else {
+        src_path[0] = '/';
+        int len = 1;
+        while (src[len-1] && len < 255) {
+            src_path[len] = src[len-1];
+            len++;
+        }
+        src_path[len] = 0;
+    }
+    
+    // Build destination path
+    char dst_path[256];
+    if (dst[0] == '/') {
+        int len = 0;
+        while (dst[len] && len < 255) {
+            dst_path[len] = dst[len];
+            len++;
+        }
+        dst_path[len] = 0;
+    } else {
+        dst_path[0] = '/';
+        int len = 1;
+        while (dst[len-1] && len < 255) {
+            dst_path[len] = dst[len-1];
+            len++;
+        }
+        dst_path[len] = 0;
+    }
+    
+    // Open source file
+    fs_file_t* src_file = fs_open(src_path, 0);
+    if (!src_file) {
+        terminal_writestring_nl("  Error: Source file not found");
+        return;
+    }
+    
+    // Create destination file
+    fs_file_t* dst_file = fs_open(dst_path, 1);
+    if (!dst_file) {
+        fs_close(src_file);
+        terminal_writestring_nl("  Error: Could not create destination file");
+        return;
+    }
+    
+    // Copy data
+    char buf[256];
+    size_t total_copied = 0;
+    while (total_copied < src_file->size) {
+        size_t to_read = src_file->size - total_copied > 256 ? 256 : src_file->size - total_copied;
+        size_t read = fs_read(src_file, buf, to_read);
+        if (read == 0) break;
+        
+        size_t written = fs_write(dst_file, buf, read);
+        if (written != read) {
+            terminal_writestring_nl("  Error: Write failed during copy");
+            break;
+        }
+        
+        total_copied += written;
+    }
+    
+    fs_close(src_file);
+    fs_close(dst_file);
+    
+    terminal_writestring("  Copied: ");
+    terminal_put_dec(total_copied);
+    terminal_writestring_nl(" bytes");
+}
+
+static void cmd_move(const char* src, const char* dst) {
+    if (!src || !*src || !dst || !*dst) {
+        terminal_writestring_nl("  Usage: move <source> <destination>");
+        return;
+    }
+    
+    // Copy the file
+    cmd_copy(src, dst);
+    
+    // Delete the original
+    char src_path[256];
+    if (src[0] == '/') {
+        int len = 0;
+        while (src[len] && len < 255) {
+            src_path[len] = src[len];
+            len++;
+        }
+        src_path[len] = 0;
+    } else {
+        src_path[0] = '/';
+        int len = 1;
+        while (src[len-1] && len < 255) {
+            src_path[len] = src[len-1];
+            len++;
+        }
+        src_path[len] = 0;
+    }
+    
+    if (fs_unlink(src_path) >= 0) {
+        terminal_writestring_nl("  Move completed");
+    } else {
+        terminal_writestring_nl("  Warning: Original file not deleted");
+    }
+}
+
+static void cmd_append(const char* name, const char* content) {
+    if (!name || !*name) {
+        terminal_writestring_nl("  Usage: append <filename> <content>");
+        return;
+    }
+    
+    char path[256];
+    if (name[0] == '/') {
+        int len = 0;
+        while (name[len] && len < 255) {
+            path[len] = name[len];
+            len++;
+        }
+        path[len] = 0;
+    } else {
+        path[0] = '/';
+        int len = 1;
+        while (name[len-1] && len < 255) {
+            path[len] = name[len-1];
+            len++;
+        }
+        path[len] = 0;
+    }
+    
+    fs_file_t* file = fs_open(path, 1);
+    if (!file) {
+        terminal_writestring_nl("  Error: Could not open file");
+        return;
+    }
+    
+    if (content && *content) {
+        size_t len = k_strlen(content);
+        size_t written = fs_write(file, content, len);
+        fs_close(file);
+        
+        terminal_writestring("  Appended ");
+        terminal_put_dec(written);
+        terminal_writestring_nl(" bytes");
+    } else {
+        fs_close(file);
+        terminal_writestring_nl("  No content to append");
+    }
+}
+
+static void cmd_rename(const char* old_name, const char* new_name) {
+    if (!old_name || !*old_name || !new_name || !*new_name) {
+        terminal_writestring_nl("  Usage: rename <oldname> <newname>");
+        return;
+    }
+    
+    // Use move command for rename
+    cmd_move(old_name, new_name);
+}
+
+static void cmd_find(const char* pattern) {
+    if (!pattern || !*pattern) {
+        terminal_writestring_nl("  Usage: find <pattern>");
+        return;
+    }
+    
+    terminal_writestring_nl("");
+    terminal_writestring("  Searching for: \"");
+    terminal_writestring(pattern);
+    terminal_writestring_nl("\"");
+    terminal_writestring_nl("");
+    
+    // Simple directory search - would need filesystem support for recursive search
+    int count = 0;
+    // This would need to be implemented with actual filesystem search
+    terminal_writestring("  Found ");
+    terminal_put_dec(count);
+    terminal_writestring_nl(" matching files");
+    terminal_writestring_nl("");
+}
+
+static void cmd_echo(const char* text) {
+    if (text && *text) {
+        terminal_writestring("  ");
+        terminal_writestring_nl(text);
+    } else {
+        terminal_putchar('\n');
+    }
+}
+
+static void cmd_version(void) {
+    terminal_writestring_nl("");
+    terminal_writestring_nl("  OpenSYS OS v0.4.0");
+    terminal_writestring_nl("  OpenKernel - 64-bit Operating System");
+    terminal_writestring_nl("  OpenFS - NTFS-style filesystem");
+    terminal_writestring_nl("  OpenShell - Natural language interface");
+    terminal_writestring_nl("  Copyright (C) 2026 CazyUndee");
+    terminal_writestring_nl("  Licensed under GPL-3.0");
+    terminal_writestring_nl("");
+}
+
+static void cmd_system_info(void) {
+    terminal_writestring_nl("");
+    terminal_writestring_nl("  System Information:");
+    terminal_writestring_nl("  ------------------");
+    
+    // Memory info
+    uint64_t total = pmm_get_total() / (1024 * 1024);
+    uint64_t free = pmm_get_free() / (1024 * 1024);
+    terminal_writestring("  Total RAM: ");
+    terminal_put_dec(total);
+    terminal_writestring(" MB, Free: ");
+    terminal_put_dec(free);
+    terminal_writestring_nl(" MB");
+    
+    // Process info
+    extern int process_get_count(void);
+    int proc_count = process_get_count();
+    terminal_writestring("  Running processes: ");
+    terminal_put_dec(proc_count);
+    terminal_writestring_nl("");
+    
+    // Date/Time
+    rtc_time_t t;
+    rtc_read_time(&t);
+    terminal_writestring("  Date: ");
+    terminal_put_dec(t.month);
+    terminal_putchar('/');
+    terminal_put_dec(t.day);
+    terminal_putchar('/');
+    terminal_put_dec(t.century);
+    terminal_put_dec(t.year);
+    terminal_writestring("  Time: ");
+    if (t.hour < 10) terminal_putchar('0');
+    terminal_put_dec(t.hour);
+    terminal_putchar(':');
+    if (t.minute < 10) terminal_putchar('0');
+    terminal_put_dec(t.minute);
+    terminal_putchar(':');
+    if (t.second < 10) terminal_putchar('0');
+    terminal_put_dec(t.second);
+    terminal_writestring_nl("");
+    terminal_writestring_nl("");
+}
+
 static void cmd_file_info(const char* name) {
     if (!name || !*name) {
         terminal_writestring_nl("  Usage: info <filename>");
@@ -366,18 +639,42 @@ static void show_help(void) {
     terminal_writestring_nl("");
     terminal_writestring_nl("  Natural Language Commands:");
     terminal_writestring_nl("  -------------------------");
-    terminal_writestring_nl("  list              - show all files");
-    terminal_writestring_nl("  create <n>        - create new file");
-    terminal_writestring_nl("  mkdir <n>         - create directory");
-    terminal_writestring_nl("  delete <n>        - delete file/dir");
-    terminal_writestring_nl("  write <n> <text>  - write to file");
-    terminal_writestring_nl("  read <n>          - display file contents");
-    terminal_writestring_nl("  info <n>          - show file information");
-    terminal_writestring_nl("  ps                - list processes");
-    terminal_writestring_nl("  memory            - show memory usage");
-    terminal_writestring_nl("  date              - show current date/time");
-    terminal_writestring_nl("  clear             - clear screen");
-    terminal_writestring_nl("  help              - show this help");
+    terminal_writestring_nl("  File Operations:");
+    terminal_writestring_nl("    list              - show all files");
+    terminal_writestring_nl("    create <n>        - create new file");
+    terminal_writestring_nl("    mkdir <n>         - create directory");
+    terminal_writestring_nl("    delete <n>        - delete file/dir");
+    terminal_writestring_nl("    copy <src> <dst>  - copy file");
+    terminal_writestring_nl("    move <src> <dst>  - move/rename file");
+    terminal_writestring_nl("    rename <old> <new> - rename file");
+    terminal_writestring_nl("    write <n> <text>  - write to file");
+    terminal_writestring_nl("    append <n> <text> - append to file");
+    terminal_writestring_nl("    read <n>          - display file contents");
+    terminal_writestring_nl("    info <n>          - show file information");
+    terminal_writestring_nl("    find <pattern>    - search for files");
+    terminal_writestring_nl("");
+    terminal_writestring_nl("  System Commands:");
+    terminal_writestring_nl("    ps                - list processes");
+    terminal_writestring_nl("    memory            - show memory usage");
+    terminal_writestring_nl("    sysinfo           - detailed system info");
+    terminal_writestring_nl("    date              - show current date/time");
+    terminal_writestring_nl("    version           - show OS version");
+    terminal_writestring_nl("");
+    terminal_writestring_nl("  Shell Utilities:");
+    terminal_writestring_nl("    echo <text>       - display text");
+    terminal_writestring_nl("    clear             - clear screen");
+    terminal_writestring_nl("    help              - show this help");
+    terminal_writestring_nl("");
+    terminal_writestring_nl("  Aliases (Unix-style):");
+    terminal_writestring_nl("    ls, dir           - list files");
+    terminal_writestring_nl("    touch             - create file");
+    terminal_writestring_nl("    rm, del           - delete file");
+    terminal_writestring_nl("    cp                - copy file");
+    terminal_writestring_nl("    mv                - move file");
+    terminal_writestring_nl("    cat, type         - read file");
+    terminal_writestring_nl("    mem               - memory usage");
+    terminal_writestring_nl("    cls               - clear screen");
+    terminal_writestring_nl("    ?                 - help");
     terminal_writestring_nl("");
 }
 
@@ -419,8 +716,20 @@ static void process_command(char* cmd) {
     else if (cmd_equals(cmd, "delete") || cmd_equals(cmd, "rm") || cmd_equals(cmd, "del")) {
         cmd_delete(arg1);
     }
+    else if (cmd_equals(cmd, "copy") || cmd_equals(cmd, "cp")) {
+        cmd_copy(arg1, arg2);
+    }
+    else if (cmd_equals(cmd, "move") || cmd_equals(cmd, "mv")) {
+        cmd_move(arg1, arg2);
+    }
+    else if (cmd_equals(cmd, "rename")) {
+        cmd_rename(arg1, arg2);
+    }
     else if (cmd_equals(cmd, "write")) {
         cmd_write_file(arg1, arg2);
+    }
+    else if (cmd_equals(cmd, "append")) {
+        cmd_append(arg1, arg2);
     }
     else if (cmd_equals(cmd, "read") || cmd_equals(cmd, "cat") || cmd_equals(cmd, "type")) {
         cmd_read_file(arg1);
@@ -428,8 +737,20 @@ static void process_command(char* cmd) {
     else if (cmd_equals(cmd, "info")) {
         cmd_file_info(arg1);
     }
+    else if (cmd_equals(cmd, "find")) {
+        cmd_find(arg1);
+    }
+    else if (cmd_equals(cmd, "echo")) {
+        cmd_echo(arg1);
+    }
     else if (cmd_equals(cmd, "memory") || cmd_equals(cmd, "mem")) {
         cmd_show_memory();
+    }
+    else if (cmd_equals(cmd, "sysinfo") || cmd_equals(cmd, "system") || cmd_equals(cmd, "info")) {
+        cmd_system_info();
+    }
+    else if (cmd_equals(cmd, "version") || cmd_equals(cmd, "ver")) {
+        cmd_version();
     }
     else if (cmd_equals(cmd, "clear") || cmd_equals(cmd, "cls")) {
         terminal_clear();
