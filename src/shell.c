@@ -27,7 +27,7 @@
 #include "../include/process.h"
 #include "../include/scheduler.h"
 #include "../include/pmm.h"
-#include "../include/rtc.h"
+#include "../include/ui_command.h"
 
 #define MAX_CMD_LEN 256
 
@@ -539,6 +539,62 @@ static void cmd_echo(const char* text) {
     }
 }
 
+static void cmd_open_window(const char* app_id) {
+    command_result_t result = cmd_open_window(app_id);
+    if (!result.success) {
+        terminal_writestring("  Error: ");
+        terminal_writestring_nl(result.error);
+    }
+}
+
+static void cmd_close_window(const char* window_id) {
+    command_result_t result = cmd_close_window(window_id);
+    if (!result.success) {
+        terminal_writestring("  Error: ");
+        terminal_writestring_nl(result.error);
+    }
+}
+
+static void cmd_move_window(const char* window_id, int x, int y) {
+    command_result_t result = cmd_move_window(window_id, x, y);
+    if (!result.success) {
+        terminal_writestring("  Error: ");
+        terminal_writestring_nl(result.error);
+    }
+}
+
+static void cmd_focus_window(const char* window_id) {
+    command_result_t result = cmd_focus_window(window_id);
+    if (!result.success) {
+        terminal_writestring("  Error: ");
+        terminal_writestring_nl(result.error);
+    }
+}
+
+static void cmd_list_windows(void) {
+    command_result_t result = cmd_list_windows();
+    if (!result.success) {
+        terminal_writestring("  Error: ");
+        terminal_writestring_nl(result.error);
+    }
+}
+
+static void cmd_list_processes(void) {
+    command_result_t result = cmd_list_processes();
+    if (!result.success) {
+        terminal_writestring("  Error: ");
+        terminal_writestring_nl(result.error);
+    }
+}
+
+static void cmd_show_system_info(void) {
+    command_result_t result = cmd_show_system_info();
+    if (!result.success) {
+        terminal_writestring("  Error: ");
+        terminal_writestring_nl(result.error);
+    }
+}
+
 static void cmd_version(void) {
     terminal_writestring_nl("");
     terminal_writestring_nl("  OpenSYS OS v0.4.0");
@@ -653,6 +709,13 @@ static void show_help(void) {
     terminal_writestring_nl("    information about <name> - show file details");
     terminal_writestring_nl("    find <pattern>    - search for files");
     terminal_writestring_nl("");
+    terminal_writestring_nl("  Window Management:");
+    terminal_writestring_nl("    open window <app> - open application window");
+    terminal_writestring_nl("    close window <id> - close window");
+    terminal_writestring_nl("    move window <id> <x> <y> - move window");
+    terminal_writestring_nl("    focus window <id> - focus window");
+    terminal_writestring_nl("    list windows     - show all open windows");
+    terminal_writestring_nl("");
     terminal_writestring_nl("  System Commands:");
     terminal_writestring_nl("    show processes    - list running processes");
     terminal_writestring_nl("    show memory       - display memory usage");
@@ -689,6 +752,59 @@ static void process_command(char* cmd) {
 
     if (cmd_equals(cmd, "list")) {
         cmd_list();
+    }
+    else if (cmd_equals(cmd, "open window") || cmd_equals(cmd, "open application")) {
+        char* app_id = arg1;
+        while (*app_id && *app_id != ' ') app_id++;
+        if (*app_id == ' ') {
+            *app_id = 0;
+            app_id++;
+            while (*app_id == ' ') app_id++;
+        }
+        cmd_open_window(app_id);
+    }
+    else if (cmd_equals(cmd, "close window")) {
+        cmd_close_window(arg1);
+    }
+    else if (cmd_equals(cmd, "move window")) {
+        char* win_id = arg1;
+        char* x_str = arg2;
+        while (*x_str && *x_str != ' ') x_str++;
+        if (*x_str == ' ') {
+            *x_str = 0;
+            x_str++;
+            while (*x_str == ' ') x_str++;
+        }
+        char* y_str = x_str;
+        while (*y_str && *y_str != ' ') y_str++;
+        if (*y_str == ' ') {
+            *y_str = 0;
+            y_str++;
+            while (*y_str == ' ') y_str++;
+        }
+        
+        if (*win_id && *x_str && *y_str) {
+            int x = 0, y = 0;
+            char* p = x_str;
+            while (*p >= '0' && *p <= '9') {
+                x = x * 10 + (*p - '0');
+                p++;
+            }
+            p = y_str;
+            while (*p >= '0' && *p <= '9') {
+                y = y * 10 + (*p - '0');
+                p++;
+            }
+            cmd_move_window(win_id, x, y);
+        } else {
+            terminal_writestring_nl("  Usage: move window <id> <x> <y>");
+        }
+    }
+    else if (cmd_equals(cmd, "focus window")) {
+        cmd_focus_window(arg1);
+    }
+    else if (cmd_equals(cmd, "list windows") || cmd_equals(cmd, "show windows")) {
+        cmd_list_windows();
     }
     else if (cmd_equals(cmd, "show processes")) {
         cmd_ps();
@@ -759,9 +875,13 @@ void shell_run(void) {
     char cmd_buffer[MAX_CMD_LEN];
     int pos = 0;
 
+    // Initialize unified UI system
+    ui_command_init();
+
     terminal_clear();
     terminal_writestring_nl("OpenSYS OpenShell v1.0");
     terminal_writestring_nl("OpenFS filesystem ready.");
+    terminal_writestring_nl("Unified UI system initialized.");
     terminal_writestring_nl("Type 'help' for commands.\n");
 
     while (1) {
