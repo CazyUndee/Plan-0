@@ -28,7 +28,9 @@
 #include "../include/process.h"
 #include "../include/ramfs.h"
 #include "../include/ps2_keyboard.h"
-#include "../include/rtc.h"
+#include "../include/state_graph.h"
+#include "../include/intent_dispatcher.h"
+#include "../include/opensys.h"
 
 static void test_proc_a(void* arg) {
 	(void)arg;
@@ -144,21 +146,11 @@ void kernel_main(uint64_t magic, uint64_t mbi) {
 		}
 	} else {
 		terminal_writestring(" OpenFS mounted successfully\n");
-	}
-
-	terminal_writestring("\n[INIT] RTC...\n");
-	rtc_init();
-	terminal_writestring(" RTC initialized\n");
-
-	terminal_writestring("\n[INIT] Process Manager...\n");
-	process_init();
-	terminal_writestring(" Process manager initialized\n");
-
-	process_create("test_a", test_proc_a, 0);
-	process_create("test_b", test_proc_b, 0);
-	process_create_user("init", user_bin_data, USER_BIN_SIZE);
-
-	terminal_writestring(" Test processes created\n");
+		terminal_writestring("[BOOT] Phase 1: Memory and Filesystem...\n");
+		pmm_init();
+		paging_init();
+		kheap_init();
+		fs_init();
 
 	__asm__ volatile ("sti");
 	terminal_writestring(" Interrupts enabled\n\n");
