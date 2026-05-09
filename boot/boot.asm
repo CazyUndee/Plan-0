@@ -9,13 +9,8 @@ section .multiboot
 align 4
 mb_header:
     dd 0x1BADB002              ; Multiboot magic number
-    dd (mb_header_end - mb_header) ; Flags
-    dd -(0x1BADB002 + (mb_header_end - mb_header)) ; Checksum
-    dd mb_header               ; Header address
-    dd 0x200000                ; Load address
-    dd 0x200000                ; Load end address
-    dd 0x200000                ; BSS end address
-    dd 0x200000                ; Entry address
+    dd 0                      ; Flags (no special features)
+    dd -(0x1BADB002 + 0)      ; Checksum
 mb_header_end:
 
 section .bss
