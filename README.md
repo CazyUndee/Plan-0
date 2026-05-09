@@ -2,6 +2,10 @@
 
 A pure 64-bit operating system built from scratch with modern Open* architecture.
 
+## License
+
+This project is licensed under the GNU General Public License v3.0. See the [LICENSE](LICENSE) file for details.
+
 ## Features
 
 - **OpenKernel**: 64-bit kernel with direct long mode entry
