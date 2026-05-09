@@ -1,4 +1,4 @@
-# OpenSYS OS
+# OpenSYS OS v0.4.0
 
 A pure 64-bit operating system built from scratch with modern Open* architecture.
 
@@ -104,6 +104,18 @@ NTFS-inspired design:
 - Supports: `$FILE_NAME`, `$DATA`, `$STANDARD_INFORMATION`
 - File names as UTF-16LE (converted to ASCII)
 - Resident data storage for small files
+- **Non-resident data support for large files** (v0.4.0)
+- **Attribute-based file metadata system**
+
+## Changelog
+
+### v0.4.0 (Current)
+- **Complete Open* naming scheme** implemented
+- **Removed all 32-bit code** - pure 64-bit architecture
+- **Enhanced OpenFS** with non-resident data support
+- **Fixed GitHub Actions CI/CD** workflow
+- **Updated all file names** to remove 32-bit suffixes
+- **Improved build system** for 64-bit only
 
 ## Shell Commands
 
@@ -121,16 +133,21 @@ Natural language commands:
 
 ## CI/CD
 
-![Build](https://github.com/CazyUndee/OpenSYS/workflows/Build%20OpenCode%20OS/badge.svg)
+![Build](https://github.com/CazyUndee/OpenSYS/workflows/Build%20OpenSYS%20OS/badge.svg)
 
-Automated builds via GitHub Actions.
+Automated builds via GitHub Actions. All commits are verified against:
+- Project structure validation
+- Open* naming consistency
+- 64-bit build verification
+- ISO creation and boot testing
 
 ## Next Steps
 
 - [ ] USB controller initialization (UHCI/EHCI)
-- [ ] More shell commands
-- [ ] Non-resident file data for large files
+- [ ] More shell commands and aliases
 - [ ] Real hardware testing
+- [ ] Network stack implementation
+- [ ] Graphics driver (VBE/EFI)
 
 ## License
 
