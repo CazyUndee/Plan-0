@@ -637,44 +637,33 @@ static void cmd_file_info(const char* name) {
 
 static void show_help(void) {
     terminal_writestring_nl("");
-    terminal_writestring_nl("  Natural Language Commands:");
-    terminal_writestring_nl("  -------------------------");
+    terminal_writestring_nl("  OpenShell Natural Language Commands:");
+    terminal_writestring_nl("  ---------------------------------");
     terminal_writestring_nl("  File Operations:");
     terminal_writestring_nl("    list              - show all files");
-    terminal_writestring_nl("    create <n>        - create new file");
-    terminal_writestring_nl("    mkdir <n>         - create directory");
-    terminal_writestring_nl("    delete <n>        - delete file/dir");
-    terminal_writestring_nl("    copy <src> <dst>  - copy file");
-    terminal_writestring_nl("    move <src> <dst>  - move/rename file");
+    terminal_writestring_nl("    create <name>     - create new file");
+    terminal_writestring_nl("    make directory <name> - create directory");
+    terminal_writestring_nl("    delete <name>     - delete file or directory");
+    terminal_writestring_nl("    copy <source> <destination> - copy file");
+    terminal_writestring_nl("    move <source> <destination> - move file");
     terminal_writestring_nl("    rename <old> <new> - rename file");
-    terminal_writestring_nl("    write <n> <text>  - write to file");
-    terminal_writestring_nl("    append <n> <text> - append to file");
-    terminal_writestring_nl("    read <n>          - display file contents");
-    terminal_writestring_nl("    info <n>          - show file information");
+    terminal_writestring_nl("    write <name> <text> - write text to file");
+    terminal_writestring_nl("    append <name> <text> - add text to file");
+    terminal_writestring_nl("    read <name>       - display file contents");
+    terminal_writestring_nl("    information about <name> - show file details");
     terminal_writestring_nl("    find <pattern>    - search for files");
     terminal_writestring_nl("");
     terminal_writestring_nl("  System Commands:");
-    terminal_writestring_nl("    ps                - list processes");
-    terminal_writestring_nl("    memory            - show memory usage");
-    terminal_writestring_nl("    sysinfo           - detailed system info");
-    terminal_writestring_nl("    date              - show current date/time");
-    terminal_writestring_nl("    version           - show OS version");
+    terminal_writestring_nl("    show processes    - list running processes");
+    terminal_writestring_nl("    show memory       - display memory usage");
+    terminal_writestring_nl("    system information - detailed system status");
+    terminal_writestring_nl("    current date time - show date and time");
+    terminal_writestring_nl("    version          - show OS version");
     terminal_writestring_nl("");
     terminal_writestring_nl("  Shell Utilities:");
     terminal_writestring_nl("    echo <text>       - display text");
-    terminal_writestring_nl("    clear             - clear screen");
+    terminal_writestring_nl("    clear screen      - clear terminal");
     terminal_writestring_nl("    help              - show this help");
-    terminal_writestring_nl("");
-    terminal_writestring_nl("  Aliases (Unix-style):");
-    terminal_writestring_nl("    ls, dir           - list files");
-    terminal_writestring_nl("    touch             - create file");
-    terminal_writestring_nl("    rm, del           - delete file");
-    terminal_writestring_nl("    cp                - copy file");
-    terminal_writestring_nl("    mv                - move file");
-    terminal_writestring_nl("    cat, type         - read file");
-    terminal_writestring_nl("    mem               - memory usage");
-    terminal_writestring_nl("    cls               - clear screen");
-    terminal_writestring_nl("    ?                 - help");
     terminal_writestring_nl("");
 }
 
@@ -698,28 +687,28 @@ static void process_command(char* cmd) {
         while (*arg2 == ' ') arg2++;
     }
 
-    if (cmd_equals(cmd, "list") || cmd_equals(cmd, "ls") || cmd_equals(cmd, "dir")) {
+    if (cmd_equals(cmd, "list")) {
         cmd_list();
     }
-    else if (cmd_equals(cmd, "ps") || cmd_equals(cmd, "procs") || cmd_equals(cmd, "processes")) {
+    else if (cmd_equals(cmd, "show processes")) {
         cmd_ps();
     }
-    else if (cmd_equals(cmd, "date") || cmd_equals(cmd, "time")) {
+    else if (cmd_equals(cmd, "current date time") || cmd_equals(cmd, "date time")) {
         cmd_date();
     }
-    else if (cmd_equals(cmd, "create") || cmd_equals(cmd, "touch") || cmd_equals(cmd, "make")) {
+    else if (cmd_equals(cmd, "create")) {
         cmd_create_file(arg1);
     }
-    else if (cmd_equals(cmd, "mkdir")) {
+    else if (cmd_equals(cmd, "make directory")) {
         cmd_mkdir(arg1);
     }
-    else if (cmd_equals(cmd, "delete") || cmd_equals(cmd, "rm") || cmd_equals(cmd, "del")) {
+    else if (cmd_equals(cmd, "delete")) {
         cmd_delete(arg1);
     }
-    else if (cmd_equals(cmd, "copy") || cmd_equals(cmd, "cp")) {
+    else if (cmd_equals(cmd, "copy")) {
         cmd_copy(arg1, arg2);
     }
-    else if (cmd_equals(cmd, "move") || cmd_equals(cmd, "mv")) {
+    else if (cmd_equals(cmd, "move")) {
         cmd_move(arg1, arg2);
     }
     else if (cmd_equals(cmd, "rename")) {
@@ -731,10 +720,10 @@ static void process_command(char* cmd) {
     else if (cmd_equals(cmd, "append")) {
         cmd_append(arg1, arg2);
     }
-    else if (cmd_equals(cmd, "read") || cmd_equals(cmd, "cat") || cmd_equals(cmd, "type")) {
+    else if (cmd_equals(cmd, "read")) {
         cmd_read_file(arg1);
     }
-    else if (cmd_equals(cmd, "info")) {
+    else if (cmd_equals(cmd, "information about")) {
         cmd_file_info(arg1);
     }
     else if (cmd_equals(cmd, "find")) {
@@ -743,19 +732,19 @@ static void process_command(char* cmd) {
     else if (cmd_equals(cmd, "echo")) {
         cmd_echo(arg1);
     }
-    else if (cmd_equals(cmd, "memory") || cmd_equals(cmd, "mem")) {
+    else if (cmd_equals(cmd, "show memory")) {
         cmd_show_memory();
     }
-    else if (cmd_equals(cmd, "sysinfo") || cmd_equals(cmd, "system") || cmd_equals(cmd, "info")) {
+    else if (cmd_equals(cmd, "system information")) {
         cmd_system_info();
     }
-    else if (cmd_equals(cmd, "version") || cmd_equals(cmd, "ver")) {
+    else if (cmd_equals(cmd, "version")) {
         cmd_version();
     }
-    else if (cmd_equals(cmd, "clear") || cmd_equals(cmd, "cls")) {
+    else if (cmd_equals(cmd, "clear screen")) {
         terminal_clear();
     }
-    else if (cmd_equals(cmd, "help") || cmd_equals(cmd, "?")) {
+    else if (cmd_equals(cmd, "help")) {
         show_help();
     }
     else {
