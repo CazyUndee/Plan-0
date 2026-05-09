@@ -194,7 +194,7 @@ int fs_truncate(fs_file_t* file, uint64_t size);
 /* Directory operations */
 fs_dir_t* fs_opendir(const char* path);
 int fs_closedir(fs_dir_t* dir);
-int fs_readdir(fs_dir_t* dir, char* name, uint64_t* mft_ref);
+int fs_readdir(const char* path, void (*callback)(const char* name, int is_dir, uint32_t size));
 int fs_mkdir(const char* path);
 int fs_rmdir(const char* path);
 
