@@ -13,7 +13,7 @@ NASMFLAGS = -f elf64
 
 # Targets
 KERNEL = openkernel
-SRCS = openkernel.c pmm.c paging.c kheap.c fs.c gpt.c disk.c hid_keyboard.c shell.c vga.c io.c interrupt_handlers.c usb.c process.c scheduler.c vm.c elf.c syscall.c idt.c gdt.c tss.c user_bin.c pic.c timer.c ps2_keyboard.c ramfs.c switch_to.c isr.c rtc.c serial.c
+SRCS = openkernel.c pmm.c paging.c kheap.c fs.c gpt.c disk.c hid_keyboard.c shell.c vga.c io.c interrupt_handlers.c usb.c process.c scheduler.c vm.c elf.c syscall.c idt.c gdt.c tss.c user_bin.c pic.c timer.c ps2_keyboard.c ramfs.c switch_to.c rtc.c serial.c vfs.c
 
 # Directories
 SRCDIR = src
