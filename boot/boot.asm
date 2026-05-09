@@ -1,6 +1,6 @@
 ; OpenSYS OS v0.4.0 - OpenKernel Bootstrap
 ; 
-; Copyright (C) 2024 CazyUndee
+; Copyright (C) 2026 CazyUndee
 ; 
 ; This program is free software: you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
