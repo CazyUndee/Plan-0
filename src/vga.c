@@ -7,6 +7,7 @@
 
 #include <stdint.h>
 #include "../include/vga.h"
+#include "../include/serial.h"
 
 #define VGA_BUFFER 0xB8000
 #define VGA_WIDTH 80
@@ -52,6 +53,8 @@ static void terminal_scroll(void) {
 }
 
 void terminal_putchar(char c) {
+    serial_putchar(c);
+
     if (c == '\n') {
         cursor_col = 0;
         cursor_row++;
@@ -87,7 +90,29 @@ void terminal_write(const char* data, size_t size) {
 }
 
 void terminal_writestring(const char* data) {
-    size_t len = 0;
-    while (data[len]) len++;
-    terminal_write(data, len);
+	size_t len = 0;
+	while (data[len]) len++;
+	terminal_write(data, len);
+}
+
+void terminal_writestring_nl(const char* data) {
+	terminal_writestring(data);
+	terminal_putchar('\n');
+}
+
+void terminal_put_hex(uint64_t n) {
+	const char hex[] = "0123456789ABCDEF";
+	char buf[19];
+	buf[0] = '0'; buf[1] = 'x'; buf[18] = 0;
+	for (int i = 17; i >= 2; i--) { buf[i] = hex[n & 0xF]; n >>= 4; }
+	terminal_writestring(buf);
+}
+
+void terminal_put_dec(uint64_t n) {
+	char buf[24];
+	int i = 23;
+	buf[i] = 0;
+	if (n == 0) { terminal_putchar('0'); return; }
+	while (n > 0) { buf[--i] = '0' + (n % 10); n /= 10; }
+	terminal_writestring(&buf[i]);
 }

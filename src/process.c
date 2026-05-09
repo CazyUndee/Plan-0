@@ -12,6 +12,7 @@
 #include "../include/pmm.h"
 #include "../include/elf.h"
 #include "../include/tss.h"
+#include "../include/vfs.h"
 
 #define STACK_SIZE 16384  /* 16KB stacks */
 
@@ -58,6 +59,7 @@ void process_init(void) {
     for (int i = 0; i < MAX_PROCESSES; i++) {
         process_table[i].state = PROC_STATE_UNUSED;
         process_table[i].pid = 0;
+        process_table[i].fd_table = 0;
     }
     
     next_pid = 1;
@@ -110,7 +112,8 @@ pid_t process_create(const char* name, process_entry_t entry, void* arg) {
     proc->priority = 0;
     proc->cpu_time = 0;
     proc->wake_time = 0;
-    
+    proc->fd_table = 0;
+
     /* Setup context for process_wrapper */
     uint64_t* stack = (uint64_t*)proc->kernel_stack_top;
     
@@ -173,7 +176,13 @@ void process_exit(int code) {
     (void)code;
     process_t* proc = process_current();
     if (!proc) return;
-    
+
+    /* Clean up fd table */
+    if (proc->fd_table) {
+        fd_table_destroy(proc->fd_table);
+        proc->fd_table = 0;
+    }
+
     /* Mark as zombie */
     proc->state = PROC_STATE_ZOMBIE;
     
@@ -273,6 +282,7 @@ pid_t process_create_user(const char* name, const void* elf_data, size_t elf_siz
     proc->priority = 0;
     proc->cpu_time = 0;
     proc->exit_code = 0;
+    proc->fd_table = 0;
 
     /* Setup kernel stack for user mode entry */
     uint64_t* stack = (uint64_t*)proc->kernel_stack_top;

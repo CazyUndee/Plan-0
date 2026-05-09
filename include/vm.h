@@ -15,8 +15,9 @@
 #define VM_FLAG_CACHE_DIS  0x10
 #define VM_FLAG_ACCESSED   0x20
 #define VM_FLAG_DIRTY      0x40
-#define VM_FLAG_HUGE       0x80
-#define VM_FLAG_NO_EXEC    0x8000000000000000ULL
+#define VM_FLAG_HUGE 0x80
+#define VM_FLAG_NO_EXEC 0x8000000000000000ULL
+#define VM_FLAG_COW 0x200
 
 /* Address space */
 typedef struct {
@@ -60,5 +61,8 @@ void vm_switch_space(vm_space_t* space);
 
 /* Initialize VM subsystem */
 void vm_init(void);
+
+/* COW page fault handler - returns 0 if handled, -1 if not */
+int vm_handle_cow_fault(uint64_t fault_addr, uint64_t err_code);
 
 #endif

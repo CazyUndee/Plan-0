@@ -9,6 +9,9 @@
 #include <stddef.h>
 #include "vm.h"
 
+/* Forward declaration */
+typedef struct fd_table fd_table_t;
+
 #define MAX_PROCESSES 64
 #define PROCESS_NAME_LEN 32
 
@@ -46,7 +49,10 @@ typedef struct process {
     uint64_t user_stack_top;
 
     /* Memory */
-vm_space_t* vm; /* Address space */
+    vm_space_t* vm; /* Address space */
+
+    /* File descriptors */
+    fd_table_t* fd_table; /* Per-process fd table */
 
     /* Scheduling */
     uint64_t wake_time;

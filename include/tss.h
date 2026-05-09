@@ -21,6 +21,7 @@ typedef struct {
 
 void tss_init(void);
 void tss_set_rsp0(uint64_t rsp0);
+uint32_t tss_size(void);
 extern void load_tr(void);
 
 #endif

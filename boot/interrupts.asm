@@ -1,152 +1,195 @@
-; interrupts.asm - Interrupt Service Routines
-; Assembly stubs for all CPU exceptions and hardware IRQs
+; interrupts64.asm - 64-bit Interrupt Stubs
 
-[BITS 32]
+section .text
+bits 64
 
-; External C handler functions
+; External C handlers
 extern isr_handler
 extern irq_handler
+extern ps2_keyboard_handler
+extern timer_handler
+extern scheduler_timer_tick
 
-; Common interrupt return path.
-; Stack on entry (top to bottom):
-;   gs, fs, es, ds, edi, esi, ebp, esp, ebx, edx, ecx, eax, int_no, err_code,
-;   eip, cs, eflags[, useresp, ss]
-; We restore segment registers after the C handler and leave the CPU-pushed
-; interrupt frame intact for iret.
-global isr_common_stub
-isr_common_stub:
-    pusha               ; Push edi, esi, ebp, esp, ebx, edx, ecx, eax
-    push ds
-    push es
-    push fs
-    push gs
-
-    mov ax, 0x10        ; Load kernel data segment
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
-
-    push esp            ; Pass pointer to stack frame to C
-    call isr_handler
-    add esp, 4
-
-    pop gs
-    pop fs
-    pop es
-    pop ds
-    popa
-    add esp, 8          ; Discard interrupt number + error code
-    iretd
-
-; Common IRQ stub - same as ISR but handles PIC EOI
-global irq_common_stub
-irq_common_stub:
-    pusha
-    push ds
-    push es
-    push fs
-    push gs
-
-    mov ax, 0x10
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
-
-    push esp
-    call irq_handler
-    add esp, 4
-
-    pop gs
-    pop fs
-    pop es
-    pop ds
-    popa
-    add esp, 8
-    iretd
-
-; CPU Exception handlers (ISR 0-31)
-; Macro for exceptions without error code
-%macro ISR_NOERR 1
+; CPU Exception handlers
+%macro ISR 1
 global isr%1
 isr%1:
-    cli
-    push dword 0        ; Dummy error code
-    push dword %1       ; Interrupt number
-    jmp isr_common_stub
+    push qword 0
+    push qword %1
+    jmp isr_common
 %endmacro
 
-; Macro for exceptions with error code
 %macro ISR_ERR 1
 global isr%1
 isr%1:
-    cli
-    push dword %1       ; Interrupt number (error code already pushed by CPU)
-    jmp isr_common_stub
+    push qword %1
+    jmp isr_common
 %endmacro
 
-; Macro for IRQ handlers
-%macro IRQ_HANDLER 2
+isr_common:
+    push rax
+    push rbx
+    push rcx
+    push rdx
+    push rsi
+    push rdi
+    push rbp
+    push r8
+    push r9
+    push r10
+    push r11
+    push r12
+    push r13
+    push r14
+    push r15
+
+    mov rdi, rsp
+    call isr_handler
+
+    pop r15
+    pop r14
+    pop r13
+    pop r12
+    pop r11
+    pop r10
+    pop r9
+    pop r8
+    pop rbp
+    pop rdi
+    pop rsi
+    pop rdx
+    pop rcx
+    pop rbx
+    pop rax
+    add rsp, 16
+    iretq
+
+ISR 0
+ISR 1
+ISR 2
+ISR 3
+ISR 4
+ISR 5
+ISR 6
+ISR 7
+ISR_ERR 8
+ISR 9
+ISR_ERR 10
+ISR_ERR 11
+ISR_ERR 12
+ISR_ERR 13
+ISR_ERR 14
+ISR 15
+ISR 16
+ISR_ERR 17
+ISR 18
+ISR 19
+ISR 20
+ISR 21
+ISR 22
+ISR 23
+ISR 24
+ISR 25
+ISR 26
+ISR 27
+ISR 28
+ISR 29
+ISR 30
+ISR 31
+
+; IRQ handlers
+%macro IRQ 2
 global irq%1
 irq%1:
-    cli
-    push dword 0        ; Dummy error code
-    push dword %2       ; IRQ number (remapped to 32+)
-    jmp irq_common_stub
+    push qword 0
+    push qword %2
+    jmp irq_common
 %endmacro
 
-; CPU Exceptions
-ISR_NOERR 0             ; Divide by zero
-ISR_NOERR 1             ; Debug
-ISR_NOERR 2             ; NMI
-ISR_NOERR 3             ; Breakpoint
-ISR_NOERR 4             ; Overflow
-ISR_NOERR 5             ; Bound range
-ISR_NOERR 6             ; Invalid opcode
-ISR_NOERR 7             ; Device not available
-ISR_ERR   8             ; Double fault (has error code)
-ISR_NOERR 9             ; Coprocessor overrun
-ISR_ERR   10            ; Invalid TSS
-ISR_ERR   11            ; Segment not present
-ISR_ERR   12            ; Stack fault
-ISR_ERR   13            ; General protection fault
-ISR_ERR   14            ; Page fault
-ISR_NOERR 15            ; Reserved
-ISR_NOERR 16            ; x87 FPU error
-ISR_ERR   17            ; Alignment check
-ISR_NOERR 18            ; Machine check
-ISR_NOERR 19            ; SIMD FPU error
-ISR_NOERR 20            ; Reserved
-ISR_NOERR 21            ; Reserved
-ISR_NOERR 22            ; Reserved
-ISR_NOERR 23            ; Reserved
-ISR_NOERR 24            ; Reserved
-ISR_NOERR 25            ; Reserved
-ISR_NOERR 26            ; Reserved
-ISR_NOERR 27            ; Reserved
-ISR_NOERR 28            ; Reserved
-ISR_NOERR 29            ; Reserved
-ISR_NOERR 30            ; Security exception
-ISR_NOERR 31            ; Reserved
+irq_common:
+    push rax
+    push rbx
+    push rcx
+    push rdx
+    push rsi
+    push rdi
+    push rbp
+    push r8
+    push r9
+    push r10
+    push r11
+    push r12
+    push r13
+    push r14
+    push r15
 
-; Hardware IRQs (remapped to vectors 32-47)
-IRQ_HANDLER 0, 32       ; Timer
-IRQ_HANDLER 1, 33       ; Keyboard
-IRQ_HANDLER 2, 34       ; Cascade
-IRQ_HANDLER 3, 35       ; COM2
-IRQ_HANDLER 4, 36       ; COM1
-IRQ_HANDLER 5, 37       ; LPT2
-IRQ_HANDLER 6, 38       ; Floppy
-IRQ_HANDLER 7, 39       ; LPT1
-IRQ_HANDLER 8, 40       ; CMOS RTC
-IRQ_HANDLER 9, 41       ; Free
-IRQ_HANDLER 10, 42      ; Free
-IRQ_HANDLER 11, 43      ; Free
-IRQ_HANDLER 12, 44      ; PS/2 Mouse
-IRQ_HANDLER 13, 45      ; FPU
-IRQ_HANDLER 14, 46      ; Primary IDE
-IRQ_HANDLER 15, 47      ; Secondary IDE
+    ; Get IRQ number
+    mov rax, [rsp + 15*8 + 8]
 
-; Add .note.GNU-stack section to prevent executable stack warning
+    ; IRQ0 - Timer (calls scheduler)
+    cmp rax, 32
+    jne .not_timer
+    call timer_handler
+    call scheduler_timer_tick
+    jmp .done_specific
+
+.not_timer:
+    ; IRQ1 - Keyboard
+    cmp rax, 33
+    jne .not_keyboard
+    call ps2_keyboard_handler
+    jmp .done_specific
+
+.not_keyboard:
+    ; Other IRQs - call generic handler
+    mov rdi, rsp
+    call irq_handler
+
+.done_specific:
+    ; Send EOI to master PIC
+    mov al, 0x20
+    out 0x20, al
+
+    ; Send EOI to slave PIC if IRQ >= 8
+    mov rax, [rsp + 15*8 + 8]
+    cmp rax, 40
+    jl .skip_slave
+    out 0xA0, al
+
+.skip_slave:
+    pop r15
+    pop r14
+    pop r13
+    pop r12
+    pop r11
+    pop r10
+    pop r9
+    pop r8
+    pop rbp
+    pop rdi
+    pop rsi
+    pop rdx
+    pop rcx
+    pop rbx
+    pop rax
+    add rsp, 16
+    iretq
+
+IRQ 0, 32
+IRQ 1, 33
+IRQ 2, 34
+IRQ 3, 35
+IRQ 4, 36
+IRQ 5, 37
+IRQ 6, 38
+IRQ 7, 39
+IRQ 8, 40
+IRQ 9, 41
+IRQ 10, 42
+IRQ 11, 43
+IRQ 12, 44
+IRQ 13, 45
+IRQ 14, 46
+IRQ 15, 47
+
 section .note.GNU-stack noalloc noexec nowrite progbits

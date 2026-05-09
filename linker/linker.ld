@@ -2,28 +2,52 @@ ENTRY(_start)
 
 SECTIONS
 {
-    . = 0x100000;
+    /* Load kernel at 2MB (leaves room for bootloader) */
+    . = 0x200000;
 
-    .text BLOCK(4K) : ALIGN(4K)
+    /* Boot section first (contains multiboot header) */
+    .boot :
     {
         *(.multiboot)
-        *(.text)
     }
 
-    .rodata BLOCK(4K) : ALIGN(4K)
+    /* 64-bit code */
+    .text :
+    {
+        *(.text)
+        *(.text.*)
+    }
+
+    /* Read-only data */
+    .rodata :
     {
         *(.rodata)
+        *(.rodata.*)
     }
 
-    .data BLOCK(4K) : ALIGN(4K)
+    /* Initialized data */
+    .data :
     {
         *(.data)
+        *(.data.*)
     }
 
-    .bss BLOCK(4K) : ALIGN(4K)
+    /* BSS (uninitialized data) */
+    .bss :
     {
+        bss_start = .;
         *(COMMON)
         *(.bss)
+        *(.bss.*)
+        bss_end = .;
+    }
+
+    /* Discard unwanted sections */
+    /DISCARD/ :
+    {
+        *(.comment)
+        *(.note.*)
+        *(.eh_frame*)
     }
 
     kernel_end = .;

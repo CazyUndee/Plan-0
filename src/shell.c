@@ -6,312 +6,385 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include "../include/vga.h"
 #include "../include/ps2_keyboard.h"
-#include "../include/ramfs.h"
+#include "../include/fs.h"
 #include "../include/process.h"
 #include "../include/scheduler.h"
+#include "../include/pmm.h"
+#include "../include/rtc.h"
 
 #define MAX_CMD_LEN 256
 
-/* VGA output */
-static volatile uint16_t* vga = (volatile uint16_t*)0xB8000;
-static int cursor_x = 0;
-static int cursor_y = 0;
-
-/* Current working directory */
 static char cwd[256] = "/";
 
-/* External functions */
-extern uint64_t pmm_get_total(void);
-extern uint64_t pmm_get_free(void);
-
-static void putc(char c) {
-    if (c == '\n') {
-        cursor_x = 0;
-        cursor_y++;
-        if (cursor_y >= 25) {
-            for (int y = 0; y < 24; y++) {
-                for (int x = 0; x < 80; x++) {
-                    vga[y * 80 + x] = vga[(y + 1) * 80 + x];
-                }
-            }
-            for (int x = 0; x < 80; x++) {
-                vga[24 * 80 + x] = 0x0720;
-            }
-            cursor_y = 24;
-        }
-    } else {
-        vga[cursor_y * 80 + cursor_x] = (uint16_t)c | 0x0700;
-        cursor_x++;
-        if (cursor_x >= 80) { cursor_x = 0; cursor_y++; }
-    }
-}
-
-static void puts(const char* s) { while (*s) putc(*s++); }
-static void puts_nl(const char* s) { puts(s); putc('\n'); }
-
-static void clear_screen(void) {
-    for (int i = 0; i < 80 * 25; i++) vga[i] = 0x0720;
-    cursor_x = 0;
-    cursor_y = 0;
-}
-
-static void put_dec(uint64_t n) {
-    char buf[24];
-    int i = 23;
-    buf[i] = 0;
-    if (n == 0) { puts("0"); return; }
-    while (n > 0) { buf[--i] = '0' + (n % 10); n /= 10; }
-    puts(&buf[i]);
-}
-
-static int strlen(const char* s) { int n = 0; while (*s++) n++; return n; }
-static int strcmp(const char* a, const char* b) {
+static int k_strlen(const char* s) { int n = 0; while (*s++) n++; return n; }
+static int k_strcmp(const char* a, const char* b) {
     while (*a && *a == *b) { a++; b++; }
     return *a - *b;
 }
-static int strncmp(const char* a, const char* b, int n) {
+static int k_strncmp(const char* a, const char* b, int n) {
     while (n-- && *a && *a == *b) { a++; b++; }
     return n < 0 ? 0 : *a - *b;
 }
 static char* trim(char* s) {
     while (*s == ' ') s++;
-    char* end = s + strlen(s) - 1;
+    char* end = s + k_strlen(s) - 1;
     while (end > s && *end == ' ') *end-- = 0;
     return s;
 }
 
-static int cmd_match(const char* input, const char* pattern) {
-    while (*input && *pattern) {
-        char a = *input, b = *pattern;
-        if (a >= 'A' && a <= 'Z') a += 32;
-        if (b >= 'A' && b <= 'Z') b += 32;
-        if (a != b) return 0;
-        input++; pattern++;
-    }
-    return 1;
-}
-
-static int cmd_starts(const char* input, const char* pattern) {
-    return strncmp(input, pattern, strlen(pattern)) == 0;
-}
-
 static int cmd_equals(const char* input, const char* pattern) {
-    return strcmp(input, pattern) == 0;
+    return k_strcmp(input, pattern) == 0;
 }
 
-/* ========== FILE LISTING CALLBACK ========== */
 static void list_callback(const char* name, int is_dir, uint32_t size) {
-    puts("  ");
+    terminal_writestring("  ");
     if (is_dir) {
-        puts("[DIR]  ");
+        terminal_writestring("[DIR]  ");
     } else {
-        puts("       ");
-        put_dec(size);
-        puts(" bytes  ");
+        terminal_writestring("  ");
+        terminal_put_dec(size);
+        terminal_writestring(" bytes  ");
     }
-    puts_nl(name);
+    terminal_writestring_nl(name);
 }
-
-/* ========== COMMANDS ========== */
 
 static void cmd_list(void) {
-    int count = ramfs_get_file_count();
+    terminal_writestring_nl("");
+    int count = fs_readdir("/", list_callback);
     if (count == 0) {
-        puts_nl("  (empty filesystem)");
-        return;
+        terminal_writestring_nl("  (empty filesystem)");
+    } else {
+        terminal_writestring_nl("");
     }
-    puts_nl("");
-    ramfs_list(list_callback);
-    puts_nl("");
 }
 
 static void cmd_show_memory(void) {
     uint64_t total = pmm_get_total() / (1024 * 1024);
     uint64_t free = pmm_get_free() / (1024 * 1024);
 
-    puts_nl("");
-    puts("  Total RAM: ");
-    put_dec(total);
-    puts_nl(" MB");
-    puts("  Free RAM:  ");
-    put_dec(free);
-    puts_nl(" MB");
-    puts_nl("");
+    terminal_writestring_nl("");
+    terminal_writestring("  Total RAM: ");
+    terminal_put_dec(total);
+    terminal_writestring_nl(" MB");
+    terminal_writestring("  Free RAM:  ");
+    terminal_put_dec(free);
+    terminal_writestring_nl(" MB");
+    terminal_writestring_nl("");
 }
 
 static void cmd_ps(void) {
-    puts_nl("");
-    puts_nl("  PID  Name       State     CPU Time");
-    puts_nl("  ---  ---------  --------  --------");
-    
+    terminal_writestring_nl("");
+    terminal_writestring_nl("  PID  Name        State     CPU Time");
+    terminal_writestring_nl("  ---  ----------  --------  --------");
+
     extern process_t* process_get_by_index(int i);
     extern int process_get_count(void);
-    
+
     int count = 0;
     for (int i = 0; i < 64; i++) {
         process_t* p = process_get_by_index(i);
         if (p && p->state != 0) {
-            puts("  ");
-            put_dec(p->pid);
-            puts("  ");
-            puts(p->name);
-            
-            int namelen = strlen(p->name);
-            for (int j = namelen; j < 10; j++) putc(' ');
-            
+            terminal_writestring("  ");
+            terminal_put_dec(p->pid);
+            terminal_writestring("  ");
+            terminal_writestring(p->name);
+
+            int namelen = k_strlen(p->name);
+            for (int j = namelen; j < 10; j++) terminal_putchar(' ');
+
             const char* state_str = "???";
             if (p->state == 1) state_str = "READY";
             else if (p->state == 2) state_str = "RUNNING";
             else if (p->state == 3) state_str = "BLOCKED";
             else if (p->state == 4) state_str = "ZOMBIE";
-            puts(state_str);
-            
-            puts("  ");
-            put_dec(p->cpu_time);
-            puts("ms");
-            putc('\n');
+            terminal_writestring(state_str);
+
+            terminal_writestring("  ");
+            terminal_put_dec(p->cpu_time);
+            terminal_writestring_nl("ms");
             count++;
         }
     }
-    
-    puts("\n  ");
-    put_dec(count);
-    puts_nl(" processes total");
-    puts_nl("");
+
+    terminal_writestring("\n  ");
+    terminal_put_dec(count);
+    terminal_writestring_nl(" processes total");
+    terminal_writestring_nl("");
+}
+
+static void cmd_date(void) {
+    rtc_time_t t;
+    rtc_read_time(&t);
+
+    terminal_writestring_nl("");
+    terminal_writestring("  ");
+
+    terminal_put_dec(t.month);
+    terminal_putchar('/');
+    terminal_put_dec(t.day);
+    terminal_putchar('/');
+    terminal_put_dec(t.century);
+    terminal_put_dec(t.year);
+
+    terminal_writestring("  ");
+
+    if (t.hour < 10) terminal_putchar('0');
+    terminal_put_dec(t.hour);
+    terminal_putchar(':');
+    if (t.minute < 10) terminal_putchar('0');
+    terminal_put_dec(t.minute);
+    terminal_putchar(':');
+    if (t.second < 10) terminal_putchar('0');
+    terminal_put_dec(t.second);
+
+    terminal_writestring_nl("");
+    terminal_writestring_nl("");
 }
 
 static void cmd_create_file(const char* name) {
     if (!name || !*name) {
-        puts_nl("  Usage: create <filename>");
+        terminal_writestring_nl("  Usage: create <filename>");
         return;
     }
-    int fd = ramfs_create(name);
-    if (fd < 0) {
-        puts_nl("  Error: Could not create file (filesystem full?)");
+    char path[256];
+    if (name[0] == '/') {
+        int len = 0;
+        while (name[len] && len < 255) {
+            path[len] = name[len];
+            len++;
+        }
+        path[len] = 0;
     } else {
-        puts("  Created: ");
-        puts_nl(name);
+        path[0] = '/';
+        int len = 1;
+        while (name[len-1] && len < 255) {
+            path[len] = name[len-1];
+            len++;
+        }
+        path[len] = 0;
+    }
+    
+    fs_file_t* file = fs_open(path, 1);
+    if (!file) {
+        terminal_writestring_nl("  Error: Could not create file");
+    } else {
+        fs_close(file);
+        terminal_writestring("  Created: ");
+        terminal_writestring_nl(name);
     }
 }
 
 static void cmd_mkdir(const char* name) {
     if (!name || !*name) {
-        puts_nl("  Usage: mkdir <dirname>");
+        terminal_writestring_nl("  Usage: mkdir <dirname>");
         return;
     }
-    int result = ramfs_mkdir(name);
-    if (result < 0) {
-        puts_nl("  Error: Could not create directory");
+    char path[256];
+    if (name[0] == '/') {
+        int len = 0;
+        while (name[len] && len < 255) {
+            path[len] = name[len];
+            len++;
+        }
+        path[len] = 0;
     } else {
-        puts("  Created directory: ");
-        puts_nl(name);
+        path[0] = '/';
+        int len = 1;
+        while (name[len-1] && len < 255) {
+            path[len] = name[len-1];
+            len++;
+        }
+        path[len] = 0;
+    }
+    
+    if (fs_mkdir(path) < 0) {
+        terminal_writestring_nl("  Error: Could not create directory");
+    } else {
+        terminal_writestring("  Created directory: ");
+        terminal_writestring_nl(name);
     }
 }
 
 static void cmd_delete(const char* name) {
     if (!name || !*name) {
-        puts_nl("  Usage: delete <filename>");
+        terminal_writestring_nl("  Usage: delete <filename>");
         return;
     }
-    int result = ramfs_delete(name);
-    if (result < 0) {
-        puts_nl("  Error: File not found");
+    char path[256];
+    if (name[0] == '/') {
+        int len = 0;
+        while (name[len] && len < 255) {
+            path[len] = name[len];
+            len++;
+        }
+        path[len] = 0;
     } else {
-        puts("  Deleted: ");
-        puts_nl(name);
+        path[0] = '/';
+        int len = 1;
+        while (name[len-1] && len < 255) {
+            path[len] = name[len-1];
+            len++;
+        }
+        path[len] = 0;
+    }
+    
+    if (fs_unlink(path) < 0) {
+        terminal_writestring_nl("  Error: File not found");
+    } else {
+        terminal_writestring("  Deleted: ");
+        terminal_writestring_nl(name);
     }
 }
 
 static void cmd_write_file(const char* name, const char* content) {
     if (!name || !*name) {
-        puts_nl("  Usage: write <filename> <content>");
+        terminal_writestring_nl("  Usage: write <filename> <content>");
         return;
     }
-    int fd = ramfs_find(name);
-    if (fd < 0) {
-        puts_nl("  Error: File not found");
+    char path[256];
+    if (name[0] == '/') {
+        int len = 0;
+        while (name[len] && len < 255) {
+            path[len] = name[len];
+            len++;
+        }
+        path[len] = 0;
+    } else {
+        path[0] = '/';
+        int len = 1;
+        while (name[len-1] && len < 255) {
+            path[len] = name[len-1];
+            len++;
+        }
+        path[len] = 0;
+    }
+    
+    fs_file_t* file = fs_open(path, 1);
+    if (!file) {
+        terminal_writestring_nl("  Error: Could not open file for writing");
         return;
     }
-    int len = strlen(content);
-    ramfs_write(fd, content, len);
-    puts("  Wrote ");
-    put_dec(len);
-    puts(" bytes to ");
-    puts_nl(name);
+    int len = k_strlen(content);
+    size_t written = fs_write(file, content, len);
+    fs_close(file);
+    terminal_writestring("  Wrote ");
+    terminal_put_dec(written);
+    terminal_writestring(" bytes to ");
+    terminal_writestring_nl(name);
 }
 
 static void cmd_read_file(const char* name) {
     if (!name || !*name) {
-        puts_nl("  Usage: read <filename>");
+        terminal_writestring_nl("  Usage: read <filename>");
         return;
     }
-    int fd = ramfs_find(name);
-    if (fd < 0) {
-        puts_nl("  Error: File not found");
-        return;
+    char path[256];
+    if (name[0] == '/') {
+        int len = 0;
+        while (name[len] && len < 255) {
+            path[len] = name[len];
+            len++;
+        }
+        path[len] = 0;
+    } else {
+        path[0] = '/';
+        int len = 1;
+        while (name[len-1] && len < 255) {
+            path[len] = name[len-1];
+            len++;
+        }
+        path[len] = 0;
     }
-    uint32_t size = ramfs_size(fd);
-    if (size == 0) {
-        puts_nl("  (empty file)");
+    
+    fs_file_t* file = fs_open(path, 0);
+    if (!file) {
+        terminal_writestring_nl("  Error: File not found");
         return;
     }
     
+    if (file->size == 0) {
+        terminal_writestring_nl("  (empty file)");
+        fs_close(file);
+        return;
+    }
+
     char buf[256];
-    uint32_t to_read = size > 255 ? 255 : size;
-    ramfs_read(fd, buf, to_read, 0);
-    buf[to_read] = 0;
-    
-    puts_nl("");
-    puts_nl(buf);
-    puts_nl("");
+    size_t to_read = file->size > 255 ? 255 : file->size;
+    size_t read = fs_read(file, buf, to_read);
+    buf[read] = 0;
+    fs_close(file);
+
+    terminal_writestring_nl("");
+    terminal_writestring_nl(buf);
+    terminal_writestring_nl("");
 }
 
 static void cmd_file_info(const char* name) {
     if (!name || !*name) {
-        puts_nl("  Usage: info <filename>");
+        terminal_writestring_nl("  Usage: info <filename>");
         return;
     }
-    int fd = ramfs_find(name);
-    if (fd < 0) {
-        puts_nl("  Error: File not found");
-        return;
+    char path[256];
+    if (name[0] == '/') {
+        int len = 0;
+        while (name[len] && len < 255) {
+            path[len] = name[len];
+            len++;
+        }
+        path[len] = 0;
+    } else {
+        path[0] = '/';
+        int len = 1;
+        while (name[len-1] && len < 255) {
+            path[len] = name[len-1];
+            len++;
+        }
+        path[len] = 0;
     }
     
-    puts_nl("");
-    puts("  Name: ");
-    puts_nl(ramfs_name(fd));
-    puts("  Size: ");
-    put_dec(ramfs_size(fd));
-    puts_nl(" bytes");
-    puts("  Type: ");
-    puts_nl(ramfs_is_dir(fd) ? "Directory" : "File");
-    puts_nl("");
+    fs_file_t* file = fs_open(path, 0);
+    if (!file) {
+        terminal_writestring_nl("  Error: File not found");
+        return;
+    }
+
+    terminal_writestring_nl("");
+    terminal_writestring("  Name:   ");
+    terminal_writestring_nl(name);
+    terminal_writestring("  Size:   ");
+    terminal_put_dec(file->size);
+    terminal_writestring_nl(" bytes");
+    terminal_writestring("  Type:   File");
+    terminal_writestring_nl("");
+    
+    fs_close(file);
 }
 
 static void show_help(void) {
-    puts_nl("");
-    puts_nl("  Natural Language Commands:");
-    puts_nl("  -------------------------");
-    puts_nl("  list        - show all files");
-    puts_nl("  create <n>  - create new file");
-    puts_nl("  mkdir <n>   - create directory");
-    puts_nl("  delete <n>  - delete file/dir");
-    puts_nl("  write <n> <text> - write to file");
-    puts_nl("  read <n>    - display file contents");
-    puts_nl("  info <n>    - show file information");
-    puts_nl("  ps          - list processes");
-    puts_nl("  memory      - show memory usage");
-    puts_nl("  clear       - clear screen");
-    puts_nl("  help        - show this help");
-    puts_nl("");
+    terminal_writestring_nl("");
+    terminal_writestring_nl("  Natural Language Commands:");
+    terminal_writestring_nl("  -------------------------");
+    terminal_writestring_nl("  list              - show all files");
+    terminal_writestring_nl("  create <n>        - create new file");
+    terminal_writestring_nl("  mkdir <n>         - create directory");
+    terminal_writestring_nl("  delete <n>        - delete file/dir");
+    terminal_writestring_nl("  write <n> <text>  - write to file");
+    terminal_writestring_nl("  read <n>          - display file contents");
+    terminal_writestring_nl("  info <n>          - show file information");
+    terminal_writestring_nl("  ps                - list processes");
+    terminal_writestring_nl("  memory            - show memory usage");
+    terminal_writestring_nl("  date              - show current date/time");
+    terminal_writestring_nl("  clear             - clear screen");
+    terminal_writestring_nl("  help              - show this help");
+    terminal_writestring_nl("");
 }
 
 static void process_command(char* cmd) {
     cmd = trim(cmd);
-    if (strlen(cmd) == 0) return;
+    if (k_strlen(cmd) == 0) return;
 
-    /* Skip leading word to find argument */
     char* arg1 = cmd;
     while (*arg1 && *arg1 != ' ') arg1++;
     if (*arg1 == ' ') {
@@ -319,7 +392,7 @@ static void process_command(char* cmd) {
         arg1++;
         while (*arg1 == ' ') arg1++;
     }
-    
+
     char* arg2 = arg1;
     while (*arg2 && *arg2 != ' ') arg2++;
     if (*arg2 == ' ') {
@@ -333,6 +406,9 @@ static void process_command(char* cmd) {
     }
     else if (cmd_equals(cmd, "ps") || cmd_equals(cmd, "procs") || cmd_equals(cmd, "processes")) {
         cmd_ps();
+    }
+    else if (cmd_equals(cmd, "date") || cmd_equals(cmd, "time")) {
+        cmd_date();
     }
     else if (cmd_equals(cmd, "create") || cmd_equals(cmd, "touch") || cmd_equals(cmd, "make")) {
         cmd_create_file(arg1);
@@ -356,32 +432,30 @@ static void process_command(char* cmd) {
         cmd_show_memory();
     }
     else if (cmd_equals(cmd, "clear") || cmd_equals(cmd, "cls")) {
-        clear_screen();
+        terminal_clear();
     }
     else if (cmd_equals(cmd, "help") || cmd_equals(cmd, "?")) {
         show_help();
     }
     else {
-        puts("  Unknown command: \"");
-        puts(cmd);
-        puts_nl("\"");
-        puts_nl("  Type 'help' for available commands.");
+        terminal_writestring("  Unknown command: \"");
+        terminal_writestring(cmd);
+        terminal_writestring_nl("\"");
+        terminal_writestring_nl("  Type 'help' for available commands.");
     }
 }
-
-/* ========== MAIN ========== */
 
 void shell_run(void) {
     char cmd_buffer[MAX_CMD_LEN];
     int pos = 0;
 
-    clear_screen();
-    puts_nl("OpenSYS Natural Shell v1.0");
-    puts_nl("RAM-based filesystem ready.");
-    puts_nl("Type 'help' for commands.\n");
+    terminal_clear();
+    terminal_writestring_nl("OpenSYS OpenShell v1.0");
+    terminal_writestring_nl("OpenFS filesystem ready.");
+    terminal_writestring_nl("Type 'help' for commands.\n");
 
     while (1) {
-        puts("> ");
+        terminal_writestring("> ");
 
         pos = 0;
         while (1) {
@@ -389,17 +463,17 @@ void shell_run(void) {
                 char c = ps2_keyboard_getc();
 
                 if (c == '\n') {
-                    putc('\n');
+                    terminal_putchar('\n');
                     cmd_buffer[pos] = 0;
                     break;
                 } else if (c == '\b' && pos > 0) {
                     pos--;
-                    putc('\b');
-                    putc(' ');
-                    putc('\b');
+                    terminal_putchar('\b');
+                    terminal_putchar(' ');
+                    terminal_putchar('\b');
                 } else if (c >= ' ' && pos < MAX_CMD_LEN - 1) {
                     cmd_buffer[pos++] = c;
-                    putc(c);
+                    terminal_putchar(c);
                 }
             }
 

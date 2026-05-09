@@ -27,7 +27,10 @@ void terminal_initialize(void);
 void terminal_putchar(char c);
 void terminal_write(const char* data, size_t size);
 void terminal_writestring(const char* data);
+void terminal_writestring_nl(const char* data);
 void terminal_clear(void);
 void terminal_set_color(enum vga_color fg, enum vga_color bg);
+void terminal_put_hex(uint64_t n);
+void terminal_put_dec(uint64_t n);
 
 #endif

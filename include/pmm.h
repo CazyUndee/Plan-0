@@ -51,6 +51,12 @@ size_t pmm_get_free(void);
 size_t pmm_get_total_pages(void);
 size_t pmm_get_free_pages(void);
 
+/* Page reference counting (for COW) */
+void pmm_ref_inc(phys_addr_t addr);
+int pmm_ref_dec(phys_addr_t addr);
+int pmm_ref_count(phys_addr_t addr);
+void pmm_ref_init_range(phys_addr_t start, size_t length);
+
 /* Debug: print memory map */
 void pmm_print_map(void);
 

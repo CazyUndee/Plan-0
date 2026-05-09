@@ -25,7 +25,11 @@ void tss_init(void) {
 }
 
 void tss_set_rsp0(uint64_t rsp0) {
-    if (tss) {
-        tss->rsp0 = rsp0;
-    }
+if (tss) {
+tss->rsp0 = rsp0;
+}
+}
+
+uint32_t tss_size(void) {
+return sizeof(tss_t);
 }

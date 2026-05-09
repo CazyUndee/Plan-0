@@ -174,7 +174,14 @@ void isr_handler(void* frame_ptr) {
         case 11: panic("Segment Not Present (#NP)", frame); break;
         case 12: panic("Stack-Segment Fault (#SS)", frame); break;
         case 13: panic("General Protection (#GP)", frame); break;
-        case 14: panic("Page Fault (#PF)", frame); break;
+        case 14: {
+            uint64_t cr2;
+            __asm__ volatile ("mov %%cr2, %0" : "=r"(cr2));
+            extern int vm_handle_cow_fault(uint64_t, uint64_t);
+            if (vm_handle_cow_fault(cr2, frame->err_code) == 0) break;
+            panic("Page Fault (#PF)", frame);
+            break;
+        }
         case 16: panic("x87 FPU Error (#MF)", frame); break;
         case 17: panic("Alignment Check (#AC)", frame); break;
         case 18: panic("Machine Check (#MC)", frame); break;

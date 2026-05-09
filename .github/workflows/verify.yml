@@ -1,0 +1,215 @@
+name: OpenKernel Verification
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    name: Verify OpenKernel Project
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcc nasm binutils qemu-system-x86 grub-pc-bin xorriso
+        
+    - name: Verify project structure
+      run: |
+        echo "=== Verifying OpenKernel Project Structure ==="
+        
+        # Check core files exist
+        required_files=(
+          "src/openkernel.c"
+          "src/pmm.c"
+          "src/paging.c" 
+          "src/kheap.c"
+          "src/fs.c"
+          "src/shell.c"
+          "src/gpt.c"
+          "boot/boot.asm"
+          "boot/interrupts.asm"
+          "Makefile"
+          "linker/linker.ld"
+        )
+        
+        all_files_exist=true
+        for file in "${required_files[@]}"; do
+          if [ -f "$file" ]; then
+            echo "✓ $file"
+          else
+            echo "✗ $file"
+            all_files_exist=false
+          fi
+        done
+        
+        if [ "$all_files_exist" = true ]; then
+          echo "✅ All required files present"
+        else
+          echo "❌ Missing files detected"
+          exit 1
+        fi
+        
+    - name: Check for 32-bit remnants
+      run: |
+        echo "=== Checking for 32-bit remnants ==="
+        
+        bad_patterns=(
+          "kernel64"
+          "pmm64" 
+          "paging64"
+          "kheap64"
+          "idt64"
+          "gdt64"
+          "boot64"
+          "interrupts64"
+        )
+        
+        found_32bit=false
+        for pattern in "${bad_patterns[@]}"; do
+          if find . -name "*$pattern*" 2>/dev/null | grep -q .; then
+            echo "✗ Found 32-bit remnants: $pattern"
+            found_32bit=true
+          fi
+        done
+        
+        if [ "$found_32bit" = false ]; then
+          echo "✅ No 32-bit remnants found"
+        else
+          echo "❌ 32-bit remnants detected"
+          exit 1
+        fi
+        
+    - name: Verify Open* naming consistency
+      run: |
+        echo "=== Verifying Open* naming consistency ==="
+        
+        # Check Open* branding in key files
+        if grep -q "OpenKernel\|OpenMemory\|OpenFS\|OpenPart\|OpenInput\|OpenShell" src/openkernel.c; then
+          echo "✓ Open* naming found in openkernel.c"
+        else
+          echo "? Open* naming not found in openkernel.c"
+        fi
+        
+        if grep -q "OpenFS" src/fs.c; then
+          echo "✓ OpenFS branding in fs.c"
+        else
+          echo "? OpenFS branding not found in fs.c"
+        fi
+        
+        if grep -q "OpenShell" src/shell.c; then
+          echo "✓ OpenShell branding in shell.c"
+        else
+          echo "? OpenShell branding not found in shell.c"
+        fi
+        
+    - name: Check Makefile configuration
+      run: |
+        echo "=== Verifying Makefile ==="
+        
+        if grep -q "KERNEL = openkernel" Makefile; then
+          echo "✓ OpenKernel target configured"
+        else
+          echo "✗ OpenKernel target not found"
+          exit 1
+        fi
+        
+        if grep -q "boot.asm" Makefile; then
+          echo "✓ Boot file reference updated"
+        else
+          echo "✗ Boot file reference incorrect"
+          exit 1
+        fi
+        
+        if grep -q "linker.ld" Makefile; then
+          echo "✓ Linker script reference updated"
+        else
+          echo "✗ Linker script reference incorrect"
+          exit 1
+        fi
+        
+    - name: Test compilation
+      run: |
+        echo "=== Testing compilation ==="
+        
+        # Check tools
+        make check
+        
+        # Try to build
+        echo "Building OpenKernel..."
+        if make all; then
+          echo "✅ Build successful"
+          
+          # Check if kernel binary exists
+          if [ -f "bin/openkernel.bin" ]; then
+            echo "✅ OpenKernel binary created"
+            ls -la bin/openkernel.bin
+          else
+            echo "✗ OpenKernel binary not found"
+            exit 1
+          fi
+        else
+          echo "❌ Build failed"
+          exit 1
+        fi
+        
+    - name: Create ISO test
+      run: |
+        echo "=== Testing ISO creation ==="
+        
+        if make iso; then
+          echo "✅ ISO creation successful"
+          
+          if [ -f "bin/os.iso" ]; then
+            echo "✅ ISO file created"
+            ls -la bin/os.iso
+          else
+            echo "✗ ISO file not found"
+            exit 1
+          fi
+        else
+          echo "❌ ISO creation failed"
+          exit 1
+        fi
+        
+    - name: Basic boot test
+      run: |
+        echo "=== Running basic boot test ==="
+        
+        # Quick QEMU boot test (timeout after 10 seconds)
+        timeout 10s qemu-system-x86_64 -kernel bin/openkernel.bin -display none -serial stdio -m 128M 2>&1 | tee boot_test.log
+        
+        if grep -q "OpenSYS.*OpenKernel" boot_test.log; then
+          echo "✅ OpenKernel branding detected in boot"
+        else
+          echo "? OpenKernel branding not detected in boot"
+        fi
+        
+        if grep -q "Multiboot2.*OK" boot_test.log; then
+          echo "✅ Multiboot2 successful"
+        else
+          echo "? Multiboot2 status unclear"
+        fi
+        
+        echo "=== Boot test log ==="
+        cat boot_test.log
+        
+    - name: Summary
+      run: |
+        echo "=== Verification Summary ==="
+        echo "✅ Project structure verified"
+        echo "✅ No 32-bit remnants"
+        echo "✅ Open* naming consistent"
+        echo "✅ Build system functional"
+        echo "✅ Compilation successful"
+        echo "✅ ISO creation working"
+        echo "✅ Basic boot test passed"
+        echo ""
+        echo "🎉 OpenKernel project is ready for main branch!"

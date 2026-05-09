@@ -1,102 +1,68 @@
 /*
- * gdt.c - Global Descriptor Table setup
- *
- * The GDT defines memory segments for the CPU in protected mode.
- * We use a "flat" model where all segments span the full 4GB address space,
- * with privilege levels separating kernel (ring 0) from user (ring 3).
+ * gdt64.c - Global Descriptor Table for 64-bit
  */
 
 #include <stdint.h>
-#include <stddef.h>
-#include "../include/gdt.h"
 
 struct gdt_entry {
-    uint16_t limit_low;     // Limit bits 0-15
-    uint16_t base_low;      // Base bits 0-15
-    uint8_t  base_middle;   // Base bits 16-23
-    uint8_t  access;        // Access byte
-    uint8_t  granularity;   // Granularity byte + limit bits 16-19
-    uint8_t  base_high;     // Base bits 24-31
+uint16_t limit_low;
+uint16_t base_low;
+uint8_t base_middle;
+uint8_t access;
+uint8_t granularity;
+uint8_t base_high;
 } __attribute__((packed));
 
 struct gdt_ptr {
-    uint16_t limit;         // Size of GDT - 1
-    uint32_t base;          // Physical address of GDT
+uint16_t limit;
+uint64_t base;
 } __attribute__((packed));
 
-// GDT entries - null, kernel code, kernel data, user code, user data, TSS
-#define GDT_ENTRIES 6
-static struct gdt_entry gdt[GDT_ENTRIES];
-static struct gdt_ptr gdt_ptr;
+static struct gdt_entry gdt[8];
+static struct gdt_ptr gdtr;
 
-// Assembly function to load GDT and reload segments
-extern void gdt_flush(uint32_t gdt_ptr_addr);
+extern void* tss;
+extern uint32_t tss_size(void);
 
-/*
- * Set a GDT gate (descriptor entry)
- *
- * num:     Entry index (0 = null, 1 = kernel code, etc.)
- * base:    Segment base address (0 for flat model)
- * limit:   Segment limit (max addressable byte, 0xFFFFF for 4GB)
- * access:  Access byte (see gdt.h for flags)
- * gran:    Granularity byte (see gdt.h for flags)
- */
-void gdt_set_gate(int num, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran) {
-    if (num < 0 || num >= GDT_ENTRIES) return;
+void gdt64_init(void) {
+uint64_t tss_addr = (uint64_t)&tss;
+uint32_t tss_limit = tss_size() - 1;
 
-    // Base address (split across 3 fields)
-    gdt[num].base_low = (uint16_t)(base & 0xFFFF);
-    gdt[num].base_middle = (uint8_t)((base >> 16) & 0xFF);
-    gdt[num].base_high = (uint8_t)((base >> 24) & 0xFF);
+gdt[0].limit_low = 0; gdt[0].base_low = 0; gdt[0].base_middle = 0;
+gdt[0].access = 0; gdt[0].granularity = 0; gdt[0].base_high = 0;
 
-    // Limit (split: low 16 bits + high 4 bits in granularity byte)
-    gdt[num].limit_low = (uint16_t)(limit & 0xFFFF);
-    gdt[num].granularity = (uint8_t)(((limit >> 16) & 0x0F) | (gran & 0xF0));
+gdt[1].limit_low = 0; gdt[1].base_low = 0; gdt[1].base_middle = 0;
+gdt[1].access = 0x9A; gdt[1].granularity = 0xAF; gdt[1].base_high = 0;
 
-    // Access byte
-    gdt[num].access = access;
-}
+gdt[2].limit_low = 0; gdt[2].base_low = 0; gdt[2].base_middle = 0;
+gdt[2].access = 0x92; gdt[2].granularity = 0xCF; gdt[2].base_high = 0;
 
-/*
- * Initialize the GDT
- *
- * Sets up:
- *   0: Null descriptor (required)
- *   1: Kernel code segment (ring 0, executable)
- *   2: Kernel data segment (ring 0, read/write)
- *   3: User code segment (ring 3, executable)
- *   4: User data segment (ring 3, read/write)
- *   5: TSS (Task State Segment) - placeholder
- *
- * Note: Flat memory model - all segments span 0-4GB
- */
-void gdt_init(void) {
-    // Null descriptor (index 0) - required by x86 architecture
-    gdt_set_gate(0, 0, 0, 0, 0);
+gdt[3].limit_low = 0; gdt[3].base_low = 0; gdt[3].base_middle = 0;
+gdt[3].access = 0xFA; gdt[3].granularity = 0xAF; gdt[3].base_high = 0;
 
-    // Kernel code segment (index 1, selector 0x08)
-    // Full 4GB (limit=0xFFFFF, gran=4KB pages), ring 0, executable, readable
-    gdt_set_gate(1, 0, 0xFFFFF, GDT_ACCESS_KERNEL_CODE, GDT_GRAN_32BIT);
+gdt[4].limit_low = 0; gdt[4].base_low = 0; gdt[4].base_middle = 0;
+gdt[4].access = 0xF2; gdt[4].granularity = 0xCF; gdt[4].base_high = 0;
 
-    // Kernel data segment (index 2, selector 0x10)
-    // Full 4GB, ring 0, writable
-    gdt_set_gate(2, 0, 0xFFFFF, GDT_ACCESS_KERNEL_DATA, GDT_GRAN_32BIT);
+gdt[5].limit_low = tss_limit & 0xFFFF;
+gdt[5].base_low = tss_addr & 0xFFFF;
+gdt[5].base_middle = (tss_addr >> 16) & 0xFF;
+gdt[5].access = 0x89;
+gdt[5].granularity = 0x00;
+gdt[5].base_high = (tss_addr >> 24) & 0xFF;
 
-    // User code segment (index 3, selector 0x18)
-    // Full 4GB, ring 3, executable, readable
-    gdt_set_gate(3, 0, 0xFFFFF, GDT_ACCESS_USER_CODE, GDT_GRAN_32BIT);
+gdt[6].limit_low = (tss_addr >> 32) & 0xFFFF;
+gdt[6].base_low = 0;
+gdt[6].base_middle = 0;
+gdt[6].access = 0;
+gdt[6].granularity = 0;
+gdt[6].base_high = 0;
 
-    // User data segment (index 4, selector 0x20)
-    // Full 4GB, ring 3, writable
-    gdt_set_gate(4, 0, 0xFFFFF, GDT_ACCESS_USER_DATA, GDT_GRAN_32BIT);
+gdt[7].limit_low = 0; gdt[7].base_low = 0; gdt[7].base_middle = 0;
+gdt[7].access = 0; gdt[7].granularity = 0; gdt[7].base_high = 0;
 
-    // TSS - will be set up later when we enable multitasking
-    gdt_set_gate(5, 0, 0, 0, 0);
+gdtr.limit = sizeof(gdt) - 1;
+gdtr.base = (uint64_t)&gdt;
 
-    // Set up GDT pointer
-    gdt_ptr.limit = sizeof(gdt) - 1;
-    gdt_ptr.base = (uint32_t)&gdt;
-
-    // Load GDT and reload segment registers
-    gdt_flush((uint32_t)&gdt_ptr);
+__asm__ volatile ("lgdt %0" : : "m"(gdtr));
+__asm__ volatile ("ltr %0" : : "r"((uint16_t)0x28));
 }

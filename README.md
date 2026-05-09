@@ -1,55 +1,54 @@
 # OpenSYS OS
 
-A 64-bit operating system kernel built from scratch with modern features.
+A pure 64-bit operating system built from scratch with modern Open* architecture.
 
 ## Features
 
-- **64-bit kernel**: Full long mode support (16-bit -> 32-bit -> 64-bit transition)
-- **Memory management**: PMM with bitmap allocator, 4-level paging, kernel heap
-- **OpenFS filesystem**: NTFS-style with Master File Table (MFT) and attributes
-- **GPT support**: GUID Partition Table driver with ATA disk access
-- **USB keyboard**: HID keyboard driver framework
-- **Natural language shell**: Human-readable commands (not cryptic Unix names)
+- **OpenKernel**: 64-bit kernel with direct long mode entry
+- **OpenMemory**: PMM with bitmap allocator, 4-level paging, kernel heap
+- **OpenFS**: NTFS-style filesystem with Master File Table (MFT) and attributes
+- **OpenPart**: GUID Partition Table driver with ATA disk access
+- **OpenInput**: USB HID keyboard driver framework
+- **OpenShell**: Natural language commands (not cryptic Unix names)
 
 ## Project Structure
 
 ```
 /
 ├── boot/
-│   ├── boot64.asm      # 64-bit long mode bootstrap
-│   ├── boot.asm        # 32-bit alternative
-│   ├── boot_c.c        # C boot stub
-│   └── interrupts.asm  # ISR/IRQ stubs
+│   ├── boot.asm        # OpenKernel bootstrap
+│   ├── interrupts.asm  # 64-bit interrupt stubs
+│   ├── context_switch.asm # Task switching
+│   ├── syscall.asm     # System call interface
+│   └── usermode.asm    # User mode transitions
 ├── src/
-│   ├── kernel64.c      # 64-bit kernel main
-│   ├── pmm64.c         # Physical memory manager
-│   ├── paging64.c      # 4-level paging
-│   ├── kheap64.c       # Kernel heap allocator
-│   ├── fs.c            # OpenFS implementation
-│   ├── gpt.c           # GPT partition driver
-│   ├── disk.c          # ATA disk driver
-│   ├── hid_keyboard.c  # USB HID keyboard
-│   └── shell.c         # Natural language shell
+│   ├── openkernel.c    # OpenKernel main
+│   ├── pmm.c          # OpenMemory PMM
+│   ├── paging.c       # 4-level paging
+│   ├── kheap.c        # OpenMemory heap
+│   ├── fs.c           # OpenFS implementation
+│   ├── gpt.c          # OpenPart driver
+│   ├── disk.c         # ATA disk driver
+│   ├── hid_keyboard.c # OpenInput USB HID
+│   └── shell.c        # OpenShell
 ├── include/
-│   ├── stdint.h        # Standard integer types
-│   ├── stddef.h        # Standard definitions
-│   ├── pmm.h           # PMM interface
-│   ├── paging.h        # Paging structures
-│   ├── kheap.h         # Heap allocator
-│   ├── fs.h            # OpenFS structures
-│   ├── gpt.h           # GPT driver
-│   ├── disk.h          # ATA driver
-│   ├── usb.h           # USB host controller
-│   ├── uhci.h          # UHCI driver
-│   └── hid_keyboard.h  # USB HID keyboard
+│   ├── stdint.h       # Standard integer types
+│   ├── stddef.h       # Standard definitions
+│   ├── pmm.h          # OpenMemory PMM interface
+│   ├── paging.h       # Paging structures
+│   ├── kheap.h        # OpenMemory heap
+│   ├── fs.h           # OpenFS structures
+│   ├── gpt.h          # OpenPart driver
+│   ├── disk.h         # ATA driver
+│   ├── usb.h          # USB host controller
+│   ├── uhci.h         # UHCI driver
+│   └── hid_keyboard.h # OpenInput USB HID
 ├── linker/
-│   ├── linker64.ld     # 64-bit linker script
-│   └── linker.ld       # 32-bit linker script
-├── grub.cfg            # GRUB configuration
-├── Makefile            # Build system
-├── build.bat           # Windows build script
+│   └── linker.ld      # OpenKernel linker script
+├── grub.cfg           # GRUB configuration
+├── Makefile           # Build system
 └── .github/workflows/
-    └── build.yml       # GitHub Actions CI
+    └── build.yml      # GitHub Actions CI
 ```
 
 ## Prerequisites
@@ -77,7 +76,7 @@ sudo apt-get install gcc nasm qemu-system-x86 grub-pc-bin xorriso
 
 ```bash
 make check     # Verify tools
-make arch64    # Build 64-bit kernel
+make all       # Build 64-bit kernel
 make iso       # Create bootable ISO
 make run-iso   # Run in QEMU
 ```
@@ -85,9 +84,9 @@ make run-iso   # Run in QEMU
 ## Boot Process
 
 1. **BIOS** -> GRUB bootloader
-2. **GRUB** -> Loads kernel at 2MB, validates Multiboot
-3. **boot64.asm** -> 16-bit real mode -> 32-bit protected mode -> 64-bit long mode
-4. **kernel64.c** -> PMM init, paging, heap, filesystem, shell
+2. **GRUB** -> Loads OpenKernel at 2MB, validates Multiboot2
+3. **boot.asm** -> Direct 64-bit long mode entry
+4. **openkernel.c** -> OpenMemory init, paging, heap, OpenFS, OpenShell
 
 ## Memory Layout
 
