@@ -28,9 +28,36 @@
 #include "../include/process.h"
 #include "../include/ramfs.h"
 #include "../include/ps2_keyboard.h"
-#include "../include/state_graph.h"
-#include "../include/intent_dispatcher.h"
+#include "../include/openmemory.h"
+#include "../include/openpaging.h"
+#include "../include/openkheap.h"
+#include "../include/openfs.h"
+#include "../include/openpart.h"
+#include "../include/openinput.h"
+#include "../include/openshell.h"
+#include "../include/openvga.h"
+#include "../include/openio.h"
+#include "../include/openinterrupt_handlers.h"
+#include "../include/openusb.h"
+#include "../include/openprocess.h"
+#include "../include/openscheduler.h"
+#include "../include/openvm.h"
+#include "../include/openelf.h"
 #include "../include/opensys.h"
+#include "../include/openidt.h"
+#include "../include/opengdt.h"
+#include "../include/opentss.h"
+#include "../include/openprograms.h"
+#include "../include/openpic.h"
+#include "../include/opentimer.h"
+#include "../include/openinput.h"
+#include "../include/openramfs.h"
+#include "../include/switch_to_pcid.h"
+#include "../include/openrtc.h"
+#include "../include/openserial.h"
+#include "../include/openvfs.h"
+#include "../include/openui_state.h"
+#include "../include/openui_command.h"
 
 static void test_proc_a(void* arg) {
 	(void)arg;
@@ -146,11 +173,42 @@ void kernel_main(uint64_t magic, uint64_t mbi) {
 		}
 	} else {
 		terminal_writestring(" OpenFS mounted successfully\n");
+		terminal_writestring("// Phase 1: Initialize OpenMemory and OpenFS\n");
 		terminal_writestring("[BOOT] Phase 1: Memory and Filesystem...\n");
-		pmm_init();
-		paging_init();
-		kheap_init();
-		fs_init();
+		openmemory_init(mbi);
+		openpaging_init();
+		openkheap_init(0xFFFF800000000000ULL, 64 * 1024 * 1024);
+		openfs_init();
+		
+		// Phase 2: Load MFT UI records into kernel-space State Graph
+		terminal_writestring("[BOOT] Phase 2: Loading State Graph from MFT...\n");
+		state_graph_init();
+		state_graph_load_from_mft();
+		
+		// Phase 3: Initialize Intent Dispatcher
+		terminal_writestring("[BOOT] Phase 3: Initializing Intent Dispatcher...\n");
+		intent_dispatcher_init();
+		
+		// Phase 4: Initialize PCID system
+		terminal_writestring("[BOOT] Phase 4: Initializing PCID...\n");
+		extern void init_pcid_system(void);
+		init_pcid_system();
+		
+		// Phase 5: Start OpenInput listener
+		terminal_writestring("[BOOT] Phase 5: Starting Input System...\n");
+		openinput_init();
+		
+		// Phase 6: Spawn OpenShell (CLI) and GUI Renderer as first two "Observer" processes
+		terminal_writestring("[BOOT] Phase 6: Starting UI Processes...\n");
+		
+		// Register observers
+		state_graph_add_observer(1, NULL);  // CLI process
+		state_graph_add_observer(2, NULL);  // GUI process
+		
+		terminal_writestring("[BOOT] Unified Open* System Ready!\n\n");
+		terminal_writestring("System is stable and running.\n");
+		terminal_writestring("Keyboard driver needs PS/2 hardware support.\n");
+	}
 
 	__asm__ volatile ("sti");
 	terminal_writestring(" Interrupts enabled\n\n");
@@ -172,8 +230,6 @@ void kernel_main(uint64_t magic, uint64_t mbi) {
 		
 		if (counter > 10) {
 			terminal_writestring("\n[SUCCESS] Kernel boot test completed!\n");
-			terminal_writestring("System is stable and running.\n");
-			terminal_writestring("Keyboard driver needs PS/2 hardware support.\n");
 			break;
 		}
 	}

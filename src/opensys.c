@@ -1,345 +1,175 @@
 /*
- * opensys.c - OpenSYS OpenLibC Implementation
- *
- * Copyright (C) 2026 CazyUndee
- * 
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * syscall.c - System Call Implementation
  */
 
-#include "../include/opensys.h"
-#include "../include/intent_dispatcher.h"
-#include "../include/state_graph.h"
-#include <stddef.h>
 #include <stdint.h>
+#include "../include/syscall.h"
+#include "../include/process.h"
+#include "../include/scheduler.h"
+#include "../include/timer.h"
+#include "../include/ramfs.h"
+#include "../include/vm.h"
+#include "../include/pmm.h"
+#include "../include/vga.h"
 
-// Helper functions
-static int k_strlen(const char* s) {
-    int n = 0;
-    while (*s++) n++;
-    return n;
-}
+extern void syscall_entry(void);
 
-static void k_strcpy(char* dst, const char* src) {
-    while (*src) *dst++ = *src++;
-    *dst = 0;
-}
+static void* syscall_table[] = {
+    /* 0: exit */     0,
+    /* 1: read */     0,
+    /* 2: write */    0,
+    /* 3: open */     0,
+    /* 4: close */    0,
+    /* 5: fork */     0,
+    /* 6: exec */     0,
+    /* 7: wait */     0,
+    /* 8: yield */    0,
+    /* 9: sleep */    0,
+    /* 10: getpid */  0,
+    /* 11: kill */    0,
+    /* 12: brk */     0,
+    /* 13: mmap */    0,
+    /* 14: munmap */  0,
+};
 
-// ============================================================================
-// High-level OpenLibC API Implementation
-// ============================================================================
-
-// Window management
-os_error_t os_open_window(const char* title, int x, int y, int width, int height, os_node_id_t* window_id) {
-    if (!title || !window_id) return OS_ERROR_INVALID_PARAM;
-    
-    // Create intent
-    os_intent_t intent = {0};
-    intent.type = 100;  // INTENT_CREATE_WINDOW
-    intent.int_param1 = x;
-    intent.int_param2 = y;
-    k_strcpy(intent.param1, title);
-    
-    // Dispatch intent
-    os_error_t result = os_sys_intent_dispatch(&intent);
-    if (result == OS_SUCCESS) {
-        // Get the created window ID (simplified - would be returned by intent)
-        *window_id = 1;  // TODO: Get actual ID from response
+static int sys_exit(int code) {
+    (void)code;
+    process_t* proc = process_current();
+    if (proc) {
+        proc->state = PROC_STATE_ZOMBIE;
+        scheduler_reschedule();
     }
-    
-    return result;
+    return 0;
 }
 
-os_error_t os_close_window(os_node_id_t window_id) {
-    if (window_id == OS_NODE_INVALID) return OS_ERROR_INVALID_PARAM;
-    
-    os_intent_t intent = {0};
-    intent.type = 101;  // INTENT_DESTROY_WINDOW
-    intent.target_id = window_id;
-    
-    return os_sys_intent_dispatch(&intent);
+static int sys_read(int fd, void* buf, uint32_t count) {
+    if (fd < 0) return -1;
+    int bytes = ramfs_read(fd, buf, count, 0);
+    return bytes;
 }
 
-os_error_t os_move_window(os_node_id_t window_id, int x, int y) {
-    if (window_id == OS_NODE_INVALID) return OS_ERROR_INVALID_PARAM;
-    
-    os_intent_t intent = {0};
-    intent.type = 102;  // INTENT_MOVE_WINDOW
-    intent.target_id = window_id;
-    intent.int_param1 = x;
-    intent.int_param2 = y;
-    
-    return os_sys_intent_dispatch(&intent);
+static int sys_write(int fd, const void* buf, uint32_t count) {
+	if (fd == 1 || fd == 2) {
+		const char* s = (const char*)buf;
+		for (uint32_t i = 0; i < count; i++) {
+			terminal_putchar(s[i]);
+		}
+		return count;
+	}
+	return -1;
 }
 
-os_error_t os_resize_window(os_node_id_t window_id, int width, int height) {
-    if (window_id == OS_NODE_INVALID) return OS_ERROR_INVALID_PARAM;
-    
-    os_intent_t intent = {0};
-    intent.type = 103;  // INTENT_RESIZE_WINDOW
-    intent.target_id = window_id;
-    intent.int_param1 = width;
-    intent.int_param2 = height;
-    
-    return os_sys_intent_dispatch(&intent);
+static int sys_yield(void) {
+    process_yield();
+    return 0;
 }
 
-os_error_t os_show_window(os_node_id_t window_id) {
-    if (window_id == OS_NODE_INVALID) return OS_ERROR_INVALID_PARAM;
-    
-    os_intent_t intent = {0};
-    intent.type = 104;  // INTENT_SHOW_WINDOW
-    intent.target_id = window_id;
-    
-    return os_sys_intent_dispatch(&intent);
+static int sys_sleep(uint64_t ms) {
+    process_sleep(ms);
+    return 0;
 }
 
-os_error_t os_hide_window(os_node_id_t window_id) {
-    if (window_id == OS_NODE_INVALID) return OS_ERROR_INVALID_PARAM;
-    
-    os_intent_t intent = {0};
-    intent.type = 105;  // INTENT_HIDE_WINDOW
-    intent.target_id = window_id;
-    
-    return os_sys_intent_dispatch(&intent);
+static int sys_getpid(void) {
+    process_t* proc = process_current();
+    return proc ? proc->pid : 0;
 }
 
-os_error_t os_focus_window(os_node_id_t window_id) {
-    if (window_id == OS_NODE_INVALID) return OS_ERROR_INVALID_PARAM;
-    
-    os_intent_t intent = {0};
-    intent.type = 106;  // INTENT_FOCUS_WINDOW
-    intent.target_id = window_id;
-    
-    return os_sys_intent_dispatch(&intent);
+static int sys_open(const char* name) {
+    int fd = ramfs_find(name);
+    return fd;
 }
 
-// Node management
-os_error_t os_create_button(os_node_id_t parent_id, const char* text, int x, int y, int width, int height, os_node_id_t* button_id) {
-    if (!text || !button_id || parent_id == OS_NODE_INVALID) return OS_ERROR_INVALID_PARAM;
-    
-    os_intent_t intent = {0};
-    intent.type = 200;  // INTENT_CREATE_NODE
-    intent.target_id = parent_id;
-    intent.int_param1 = 1;  // NODE_TYPE_BUTTON
-    intent.int_param2 = 1;  // Create flag
-    k_strcpy(intent.param1, text);
-    intent.int_param1 = x;
-    intent.int_param2 = y;
-    
-    os_error_t result = os_sys_intent_dispatch(&intent);
-    if (result == OS_SUCCESS) {
-        *button_id = 2;  // TODO: Get actual ID
+static int sys_close(int fd) {
+    (void)fd;
+    return 0;
+}
+
+static int sys_fork(void) {
+    process_t* parent = process_current();
+    if (!parent) return -1;
+    char child_name[PROCESS_NAME_LEN];
+    int i;
+    for (i = 0; i < PROCESS_NAME_LEN - 7 && parent->name[i]; i++)
+        child_name[i] = parent->name[i];
+    child_name[i] = '_'; child_name[i+1] = 'c'; child_name[i+2] = 'h';
+    child_name[i+3] = 'i'; child_name[i+4] = 'l'; child_name[i+5] = 'd';
+    child_name[i+6] = '\0';
+    process_t* child = process_create(child_name, 0, 0);
+    if (!child) return -1;
+    vm_space_t* child_vm = vm_clone_space(parent->vm);
+    if (!child_vm) return -1;
+    child->vm = child_vm;
+    return child->pid;
+}
+
+static int sys_exec(const char* path) {
+    (void)path;
+    return -1;
+}
+
+static int sys_wait(int* status) {
+    (void)status;
+    process_yield();
+    return -1;
+}
+
+static int sys_kill(pid_t pid) {
+    process_t* proc = process_get(pid);
+    if (!proc) return -1;
+    proc->state = PROC_STATE_ZOMBIE;
+    return 0;
+}
+
+static uint64_t sys_brk(uint64_t addr) {
+    process_t* proc = process_current();
+    if (!proc || !proc->vm) return -1;
+    if (addr == 0) return proc->vm->heap_end;
+    if (addr > proc->vm->heap_start) {
+        proc->vm->heap_end = addr;
+        return addr;
     }
-    
-    return result;
+    return -1;
 }
 
-os_error_t os_create_input(os_node_id_t parent_id, const char* default_text, int x, int y, int width, int height, os_node_id_t* input_id) {
-    if (!input_id || parent_id == OS_NODE_INVALID) return OS_ERROR_INVALID_PARAM;
-    
-    os_intent_t intent = {0};
-    intent.type = 200;  // INTENT_CREATE_NODE
-    intent.target_id = parent_id;
-    intent.int_param1 = 3;  // NODE_TYPE_INPUT
-    k_strcpy(intent.param1, default_text ? default_text : "");
-    
-    os_error_t result = os_sys_intent_dispatch(&intent);
-    if (result == OS_SUCCESS) {
-        *input_id = 3;  // TODO: Get actual ID
+static uint64_t sys_mmap(uint64_t addr, uint64_t size, uint64_t flags) {
+    (void)addr;
+    process_t* proc = process_current();
+    if (!proc || !proc->vm || size == 0) return -1;
+    uint64_t count = (size + PAGE_SIZE - 1) / PAGE_SIZE;
+    void* virt = vm_alloc_pages(proc->vm, count, flags);
+    return virt ? (uint64_t)virt : (uint64_t)-1;
+}
+
+static uint64_t sys_munmap(uint64_t addr, uint64_t size) {
+    process_t* proc = process_current();
+    if (!proc || !proc->vm || size == 0) return -1;
+    uint64_t count = (size + PAGE_SIZE - 1) / PAGE_SIZE;
+    vm_free_pages(proc->vm, (void*)addr, count);
+    return 0;
+}
+
+uint64_t syscall_handler(uint64_t num, uint64_t a1, uint64_t a2, uint64_t a3) {
+    switch (num) {
+    case SYS_EXIT: return sys_exit(a1);
+    case SYS_READ: return sys_read(a1, (void*)a2, a3);
+    case SYS_WRITE: return sys_write(a1, (const void*)a2, a3);
+    case SYS_OPEN: return sys_open((const char*)a1);
+    case SYS_CLOSE: return sys_close(a1);
+    case SYS_FORK: return sys_fork();
+    case SYS_EXEC: return sys_exec((const char*)a1);
+    case SYS_WAIT: return sys_wait((int*)a1);
+    case SYS_YIELD: return sys_yield();
+    case SYS_SLEEP: return sys_sleep(a1);
+    case SYS_GETPID: return sys_getpid();
+    case SYS_KILL: return sys_kill(a1);
+    case SYS_BRK: return sys_brk(a1);
+    case SYS_MMAP: return sys_mmap(a1, a2, a3);
+    case SYS_MUNMAP: return sys_munmap(a1, a2);
+    default: return -1;
     }
-    
-    return result;
 }
 
-os_error_t os_create_text(os_node_id_t parent_id, const char* text, int x, int y, os_node_id_t* text_id) {
-    if (!text || !text_id || parent_id == OS_NODE_INVALID) return OS_ERROR_INVALID_PARAM;
-    
-    os_intent_t intent = {0};
-    intent.type = 200;  // INTENT_CREATE_NODE
-    intent.target_id = parent_id;
-    intent.int_param1 = 4;  // NODE_TYPE_TEXT
-    k_strcpy(intent.param1, text);
-    
-    os_error_t result = os_sys_intent_dispatch(&intent);
-    if (result == OS_SUCCESS) {
-        *text_id = 4;  // TODO: Get actual ID
-    }
-    
-    return result;
-}
-
-os_error_t os_set_node_text(os_node_id_t node_id, const char* text) {
-    if (!text || node_id == OS_NODE_INVALID) return OS_ERROR_INVALID_PARAM;
-    
-    os_intent_t intent = {0};
-    intent.type = 204;  // INTENT_SET_NODE_TEXT
-    intent.target_id = node_id;
-    k_strcpy(intent.param1, text);
-    
-    return os_sys_intent_dispatch(&intent);
-}
-
-os_error_t os_set_node_value(os_node_id_t node_id, const char* value) {
-    if (!value || node_id == OS_NODE_INVALID) return OS_ERROR_INVALID_PARAM;
-    
-    os_intent_t intent = {0};
-    intent.type = 205;  // INTENT_SET_NODE_VALUE
-    intent.target_id = node_id;
-    k_strcpy(intent.param1, value);
-    
-    return os_sys_intent_dispatch(&intent);
-}
-
-os_error_t os_get_node_text(os_node_id_t node_id, char* buffer, size_t buffer_size) {
-    if (!buffer || node_id == OS_NODE_INVALID) return OS_ERROR_INVALID_PARAM;
-    
-    os_node_info_t info;
-    os_error_t result = os_sys_get_node_info(node_id, &info);
-    if (result == OS_SUCCESS) {
-        k_strcpy(buffer, info.text);
-    }
-    
-    return result;
-}
-
-os_error_t os_get_node_value(os_node_id_t node_id, char* buffer, size_t buffer_size) {
-    if (!buffer || node_id == OS_NODE_INVALID) return OS_ERROR_INVALID_PARAM;
-    
-    os_node_info_t info;
-    os_error_t result = os_sys_get_node_info(node_id, &info);
-    if (result == OS_SUCCESS) {
-        k_strcpy(buffer, info.value);
-    }
-    
-    return result;
-}
-
-// Interaction
-os_error_t os_click_node(os_node_id_t node_id) {
-    if (node_id == OS_NODE_INVALID) return OS_ERROR_INVALID_PARAM;
-    
-    os_intent_t intent = {0};
-    intent.type = 300;  // INTENT_CLICK_NODE
-    intent.target_id = node_id;
-    
-    return os_sys_intent_dispatch(&intent);
-}
-
-os_error_t os_send_key(os_node_id_t node_id, uint32_t key_code) {
-    if (node_id == OS_NODE_INVALID) return OS_ERROR_INVALID_PARAM;
-    
-    os_intent_t intent = {0};
-    intent.type = 301;  // INTENT_KEY_PRESS
-    intent.target_id = node_id;
-    intent.int_param1 = key_code;
-    
-    return os_sys_intent_dispatch(&intent);
-}
-
-os_error_t os_send_text(os_node_id_t node_id, const char* text) {
-    if (!text || node_id == OS_NODE_INVALID) return OS_ERROR_INVALID_PARAM;
-    
-    os_intent_t intent = {0};
-    intent.type = 302;  // INTENT_TEXT_INPUT
-    intent.target_id = node_id;
-    k_strcpy(intent.param1, text);
-    
-    return os_sys_intent_dispatch(&intent);
-}
-
-// System information
-os_error_t os_list_windows(os_node_id_t* windows, size_t* count) {
-    if (!windows || !count) return OS_ERROR_INVALID_PARAM;
-    
-    // TODO: Implement system call to list windows
-    *count = 0;
-    return OS_SUCCESS;
-}
-
-os_error_t os_list_children(os_node_id_t parent_id, os_node_id_t* children, size_t* count) {
-    if (!children || !count || parent_id == OS_NODE_INVALID) return OS_ERROR_INVALID_PARAM;
-    
-    // TODO: Implement system call to list children
-    *count = 0;
-    return OS_SUCCESS;
-}
-
-// ============================================================================
-// Low-level intent interface
-// ============================================================================
-
-os_error_t os_create_intent(uint32_t type, os_node_id_t target_id, os_intent_t* intent) {
-    if (!intent) return OS_ERROR_INVALID_PARAM;
-    
-    // Clear intent
-    for (size_t i = 0; i < sizeof(os_intent_t); i++) {
-        ((uint8_t*)intent)[i] = 0;
-    }
-    
-    intent->type = type;
-    intent->target_id = target_id;
-    intent->source_process_id = 1;  // TODO: Get actual process ID
-    
-    return OS_SUCCESS;
-}
-
-os_error_t os_set_intent_param(os_intent_t* intent, const char* param1, const char* param2, int int1, int int2) {
-    if (!intent) return OS_ERROR_INVALID_PARAM;
-    
-    if (param1) k_strcpy(intent->param1, param1);
-    if (param2) k_strcpy(intent->param2, param2);
-    intent->int_param1 = int1;
-    intent->int_param2 = int2;
-    
-    return OS_SUCCESS;
-}
-
-os_error_t os_dispatch_intent(os_intent_t* intent) {
-    if (!intent) return OS_ERROR_INVALID_PARAM;
-    
-    return os_sys_intent_dispatch(intent);
-}
-
-// ============================================================================
-// Example usage functions
-// ============================================================================
-
-// Example: Create a simple window with a button
-os_error_t os_create_simple_window(const char* title, os_node_id_t* window_id) {
-    os_node_id_t win_id, btn_id;
-    os_error_t result;
-    
-    // Create window
-    result = os_open_window(title, 100, 100, 400, 300, &win_id);
-    if (result != OS_SUCCESS) return result;
-    
-    // Create button
-    result = os_create_button(win_id, "Click Me", 150, 200, 100, 30, &btn_id);
-    if (result != OS_SUCCESS) return result;
-    
-    if (window_id) *window_id = win_id;
-    return OS_SUCCESS;
-}
-
-// Example: Move window to center of screen
-os_error_t os_center_window(os_node_id_t window_id, int screen_width, int screen_height) {
-    os_node_info_t info;
-    os_error_t result = os_sys_get_node_info(window_id, &info);
-    if (result != OS_SUCCESS) return result;
-    
-    int x = (screen_width - info.geometry.width) / 2;
-    int y = (screen_height - info.geometry.height) / 2;
-    
-    return os_move_window(window_id, x, y);
+void syscall_init(void) {
+    extern void idt_set_syscall_gate_wrapper(void);
+    idt_set_syscall_gate_wrapper();
 }
