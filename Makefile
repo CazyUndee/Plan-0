@@ -30,7 +30,16 @@ NASMFLAGS = -f elf64
 
 # Targets
 KERNEL = openkernel
-SRCS = openkernel.c pmm.c paging.c kheap.c fs.c gpt.c disk.c hid_keyboard.c shell.c vga.c io.c interrupt_handlers.c usb.c process.c scheduler.c vm.c elf.c syscall.c idt.c gdt.c tss.c user_bin.c pic.c timer.c ps2_keyboard.c ramfs.c switch_to.c rtc.c serial.c vfs.c ui_state.c ui_command.c state_graph.c intent_dispatcher.c opensys.c
+# Source files organized by directory
+KERNEL_SRCS = kernel/openkernel.c kernel/opensys.c kernel/opensystem_calls.c kernel/openelf.c kernel/openelf_loader.c kernel/openstate_graph.c kernel/openintent_dispatcher.c kernel/openswitch.c
+MEMORY_SRCS = memory/openmemory.c memory/openkheap.c memory/openpaging.c
+FS_SRCS = fs/openfs.c fs/openvfs.c fs/openramfs.c
+ARCH_SRCS = arch/opengdt.c arch/opengdt_flush.asm arch/openidt.c arch/opentss.c arch/openpic.c arch/opentimer.c arch/opencpu_exceptions.c arch/openinterrupt_handlers.c
+DRIVER_SRCS = drivers/opendisk.c drivers/openvga.c drivers/openhid.c drivers/openinput.c drivers/openusb_host.c drivers/openserial.c drivers/openio.c drivers/openpart.c drivers/openrtc.c
+PROCESS_SRCS = process/openprocess.c process/openscheduler.c process/openprograms.c process/openvm.c
+UI_SRCS = ui/openshell.c ui/openui_command.c ui/openui_state.c
+
+SRCS = $(KERNEL_SRCS) $(MEMORY_SRCS) $(FS_SRCS) $(ARCH_SRCS) $(DRIVER_SRCS) $(PROCESS_SRCS) $(UI_SRCS)
 
 # Directories
 SRCDIR = src
@@ -82,8 +91,9 @@ $(CTXTSW_OBJ): $(BOOTDIR)/context_switch.asm | $(OBJDIR)
 $(SYSCALL_OBJ): $(BOOTDIR)/syscall.asm | $(OBJDIR)
 	$(NASM) $(NASMFLAGS) -o $@ $<
 
-# C objects
+# C objects - handle subdirectories
 $(OBJDIR)/%.o: $(SRCDIR)/%.c | $(OBJDIR)
+	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 # Link kernel
@@ -132,11 +142,35 @@ user/init.elf: user/init.o user/user.ld
 user/init.bin: user/init.elf
 	objcopy -O binary $< $@
 
+# Test targets
+test:
+	@echo "Running OpenSYS OS test suite..."
+	@$(MAKE) -C tests test
+
+test-unit:
+	@echo "Running unit tests..."
+	@$(MAKE) -C tests unit
+
+test-integration:
+	@echo "Running integration tests..."
+	@$(MAKE) -C tests integration
+
+test-all:
+	@echo "Running all tests with verbose output..."
+	@$(MAKE) -C tests test-verbose
+
+test-clean:
+	@echo "Cleaning test build artifacts..."
+	@$(MAKE) -C tests clean
+
 # Clean build artifacts
 clean:
 	@rm -rf $(OBJDIR) $(BINDIR) iso
 	@rm -f user/init.o user/init.elf user/init.bin
 	@echo "Cleaned build artifacts"
+
+clean-all: clean test-clean
+	@echo "Cleaned all build artifacts"
 
 # Show build configuration
 info:
