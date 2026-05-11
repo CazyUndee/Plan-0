@@ -17,7 +17,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "openio.h"
+#include "io.h"
 #include <stdint.h>
 
 // Output a byte to I/O port
