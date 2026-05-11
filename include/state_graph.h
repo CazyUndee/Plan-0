@@ -21,6 +21,7 @@
 #define STATE_GRAPH_H
 
 #include <stdint.h>
+#include <stddef.h>
 
 // Node types (expanded from ui_state.h)
 typedef enum {
