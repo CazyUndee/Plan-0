@@ -94,12 +94,12 @@ static void cmd_ps(void) {
     terminal_writestring_nl("  PID  Name        State     CPU Time");
     terminal_writestring_nl("  ---  ----------  --------  --------");
 
-    extern process_t* process_get_by_index(int i);
+    extern ui_process_t* process_get_by_index(int i);
     extern int process_get_count(void);
 
     int count = 0;
     for (int i = 0; i < 64; i++) {
-        process_t* p = process_get_by_index(i);
+        ui_process_t* p = process_get_by_index(i);
         if (p && p->state != 0) {
             terminal_writestring("  ");
             terminal_put_dec(p->pid);

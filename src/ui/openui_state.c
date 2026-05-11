@@ -334,7 +334,7 @@ node_t* ui_state_get_node(const char* id) {
 }
 
 // Get process by PID
-process_t* ui_state_get_process(uint32_t pid) {
+ui_process_t* ui_state_get_process(uint32_t pid) {
     for (int i = 0; i < MAX_PROCESSES; i++) {
         if (g_state.processes[i].pid == pid && g_state.processes[i].active) {
             return &g_state.processes[i];

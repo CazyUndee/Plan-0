@@ -21,6 +21,7 @@
 #define OPENPART_H
 
 #include <stdint.h>
+#include "disk.h"
 
 // Partition types
 typedef enum {

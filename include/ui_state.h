@@ -71,7 +71,7 @@ typedef struct {
     char name[MAX_ID_LENGTH];
     int active;
     uint32_t main_window_id;
-} process_t;
+} ui_process_t;
 
 // Focus state
 typedef struct {
@@ -113,7 +113,7 @@ typedef struct {
 typedef struct {
     window_t windows[MAX_WINDOWS];
     node_t nodes[MAX_NODES];
-    process_t processes[MAX_PROCESSES];
+    ui_process_t processes[MAX_PROCESSES];
     focus_state_t focus;
     int window_count;
     int node_count;
@@ -134,7 +134,7 @@ int ui_state_set_focus(const char* window_id, const char* node_id);
 // State queries
 window_t* ui_state_get_window(const char* id);
 node_t* ui_state_get_node(const char* id);
-process_t* ui_state_get_process(uint32_t pid);
+ui_process_t* ui_state_get_process(uint32_t pid);
 int ui_state_get_focused_window(void);
 int ui_state_get_focused_node(void);
 

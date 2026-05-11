@@ -368,7 +368,7 @@ command_result_t cmd_list_processes(void) {
     
     int count = 0;
     for (int i = 0; i < MAX_PROCESSES; i++) {
-        process_t* proc = &state->processes[i];
+        ui_process_t* proc = &state->processes[i];
         if (proc->name[0] && proc->active) {
             terminal_writestring("  PID ");
             terminal_put_dec(proc->pid);
