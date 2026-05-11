@@ -21,6 +21,8 @@
 #define UI_STATE_H
 
 #include <stdint.h>
+#include <stddef.h>
+#include "intent_dispatcher.h"
 
 // Maximum limits
 #define MAX_WINDOWS 64
@@ -79,36 +81,6 @@ typedef struct {
     char node_id[MAX_ID_LENGTH];
 } focus_state_t;
 
-// Intent types
-typedef enum {
-    INTENT_OPEN_WINDOW,
-    INTENT_CLOSE_WINDOW,
-    INTENT_SET_WINDOW_POSITION,
-    INTENT_SET_WINDOW_SIZE,
-    INTENT_SET_WINDOW_VISIBILITY,
-    INTENT_CREATE_NODE,
-    INTENT_DELETE_NODE,
-    INTENT_SET_NODE_POSITION,
-    INTENT_SET_NODE_TEXT,
-    INTENT_SET_NODE_VALUE,
-    INTENT_SET_NODE_VISIBILITY,
-    INTENT_CLICK_NODE,
-    INTENT_SET_FOCUS,
-    INTENT_START_PROCESS,
-    INTENT_STOP_PROCESS
-} intent_type_t;
-
-// Intent structure
-typedef struct {
-    intent_type_t type;
-    char target_id[MAX_ID_LENGTH];
-    char param1[MAX_ID_LENGTH];
-    char param2[MAX_ID_LENGTH];
-    int int_param1;
-    int int_param2;
-    void* data;
-} intent_t;
-
 // System state graph
 typedef struct {
     window_t windows[MAX_WINDOWS];
@@ -137,13 +109,5 @@ node_t* ui_state_get_node(const char* id);
 ui_process_t* ui_state_get_process(uint32_t pid);
 int ui_state_get_focused_window(void);
 int ui_state_get_focused_node(void);
-
-// Intent builders
-intent_t intent_open_window(const char* id, const char* title);
-intent_t intent_close_window(const char* id);
-intent_t intent_set_window_position(const char* id, int x, int y);
-intent_t intent_click_node(const char* id);
-intent_t intent_set_focus_window(const char* id);
-intent_t intent_set_focus_node(const char* id);
 
 #endif // UI_STATE_H

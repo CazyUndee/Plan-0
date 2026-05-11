@@ -52,7 +52,6 @@
 #include "vfs.h"
 #include "ui_state.h"
 #include "ui_command.h"
-#include "intent_dispatcher.h"
 #include "state_graph.h"
 
 static void test_proc_a(void* arg) {
