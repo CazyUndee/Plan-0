@@ -28,8 +28,10 @@ gdt_flush:
 
     ; Reload code segment with far jump
     ; 0x08 = index 1 << 3 | RPL 0 (kernel code selector)
-    ; The jump format is: jmp selector:offset
-    jmp 0x08:.flush_cs
+    ; In 64-bit mode, we need to use push + retf instead of jmp selector:offset
+    push qword 0x08      ; Push code selector
+    push qword .flush_cs  ; Push target address
+    retf                 ; Far return to reload CS
 
 .flush_cs:
     ; Return to C code
