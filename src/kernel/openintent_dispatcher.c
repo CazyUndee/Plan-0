@@ -19,7 +19,6 @@
 
 #include "intent_dispatcher.h"
 #include "state_graph.h"
-#include "mft.h"
 #include "vga.h"
 #include "rtc.h"
 #include <stddef.h>
