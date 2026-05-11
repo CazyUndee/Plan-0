@@ -35,6 +35,7 @@ typedef struct {
 // Core API
 void openmemory_init(uint64_t mbi);
 void openmemory_get_stats(openmemory_stats_t* stats);
+void* openmemory_alloc_page(void);
 
 // Memory allocation (for OpenLibC)
 void* openmalloc(size_t size);

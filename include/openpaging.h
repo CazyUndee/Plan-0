@@ -21,6 +21,7 @@
 #define OPENPAGING_H
 
 #include <stdint.h>
+#include <stddef.h>
 
 // Paging statistics
 typedef struct {

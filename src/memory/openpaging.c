@@ -168,7 +168,6 @@ void openpaging_get_stats(openpaging_stats_t* stats) {
     // Calculate paging statistics (simplified)
     stats->total_pages = mem_stats.total_mb * 256;  // Approximate
     stats->free_pages = mem_stats.free_mb * 256;    // Approximate
-    stats->used_pages = stats->total_pages - stats->free_pages;
 }
 
 // Legacy compatibility functions
