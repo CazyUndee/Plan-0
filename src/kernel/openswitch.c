@@ -17,7 +17,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "openswitch.h"
 #include "process.h"
 #include "scheduler.h"
 #include "timer.h"
