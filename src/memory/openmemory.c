@@ -200,8 +200,6 @@ void openmemory_get_stats(openmemory_stats_t* stats) {
     
     stats->total_mb = pmm_total_pages_count * PAGE_SIZE / (1024 * 1024);
     stats->free_mb = pmm_free_pages_count * PAGE_SIZE / (1024 * 1024);
-    stats->used_mb = stats->total_mb - stats->free_mb;
-    stats->heap_mb = 64;  // Fixed 64MB heap
 }
 
 // Legacy compatibility functions
@@ -209,12 +207,12 @@ void pmm_init(uint64_t mbi) {
     openmemory_init(mbi);
 }
 
-void* pmm_alloc_page(void) {
-    return openmemory_alloc_page();
+phys_addr_t pmm_alloc_page(void) {
+    return (phys_addr_t)openmemory_alloc_page();
 }
 
-void pmm_free_page(void* addr) {
-    openmemory_free_page(addr);
+void pmm_free_page(phys_addr_t addr) {
+    openmemory_free_page((void*)addr);
 }
 
 void pmm_reserve_range(uint64_t start, size_t length) {

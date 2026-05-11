@@ -21,6 +21,7 @@
 #define OPENMEMORY_H
 
 #include <stdint.h>
+#include <stddef.h>
 
 // Memory statistics
 typedef struct {
@@ -42,5 +43,8 @@ void openfree(void* ptr);
 // Memory information
 uint64_t openmemory_get_total(void);
 uint64_t openmemory_get_free(void);
+
+// Memory range management
+void openmemory_free_range(uint64_t start, size_t length);
 
 #endif // OPENMEMORY_H
