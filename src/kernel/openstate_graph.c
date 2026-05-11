@@ -74,10 +74,10 @@ void state_graph_init(void) {
     
     // Allocate dedicated heap region (1MB)
     g_state_graph.heap_size = 1024 * 1024;
-    g_state_graph.heap = (state_node_t*)kmalloc(g_state_graph.heap_size);
+    g_state_graph.node_heap = (state_node_t*)kmalloc(g_state_graph.heap_size);
     g_state_graph.heap_used = 0;
     
-    if (!g_state_graph.heap) {
+    if (!g_state_graph.node_heap) {
         terminal_writestring_nl("FATAL: Failed to allocate state graph heap");
         while(1) __asm__ volatile("hlt");
     }
@@ -108,7 +108,7 @@ static state_node_t* allocate_node(void) {
         return NULL;  // Out of space
     }
     
-    state_node_t* node = (state_node_t*)((uint8_t*)g_state_graph.heap + g_state_graph.heap_used);
+    state_node_t* node = (state_node_t*)((uint8_t*)g_state_graph.node_heap + g_state_graph.heap_used);
     g_state_graph.heap_used += sizeof(state_node_t);
     
     // Clear the node
