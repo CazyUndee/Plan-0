@@ -4,10 +4,10 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include "../include/elf.h"
-#include "../include/vm.h"
-#include "../include/pmm.h"
-#include "../include/kheap.h"
+#include "elf.h"
+#include "vm.h"
+#include "pmm.h"
+#include "kheap.h"
 
 int elf_validate(const void* data) {
     const elf64_header_t* hdr = (const elf64_header_t*)data;

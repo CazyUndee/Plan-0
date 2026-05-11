@@ -17,8 +17,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "../include/ui_state.h"
-#include "../include/vga.h"
+#include "ui_state.h"
+#include "vga.h"
 #include <stddef.h>
 #include <stdint.h>
 

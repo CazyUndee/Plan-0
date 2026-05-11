@@ -17,9 +17,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "../include/openvga.h"
-#include "../include/vga.h"
-#include "../include/serial.h"
+#include "openvga.h"
+#include "vga.h"
+#include "serial.h"
 #include <stddef.h>
 #include <stdint.h>
 

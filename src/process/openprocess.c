@@ -3,16 +3,16 @@
  */
 
 #include <stdint.h>
-#include "../include/process.h"
-#include "../include/scheduler.h"
-#include "../include/kheap.h"
-#include "../include/timer.h"
-#include "../include/paging.h"
-#include "../include/vm.h"
-#include "../include/pmm.h"
-#include "../include/elf.h"
-#include "../include/tss.h"
-#include "../include/vfs.h"
+#include "process.h"
+#include "scheduler.h"
+#include "kheap.h"
+#include "timer.h"
+#include "paging.h"
+#include "vm.h"
+#include "pmm.h"
+#include "elf.h"
+#include "tss.h"
+#include "vfs.h"
 
 #define STACK_SIZE 16384  /* 16KB stacks */
 

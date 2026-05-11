@@ -3,11 +3,11 @@
  */
 
 #include <stdint.h>
-#include "../include/vm.h"
-#include "../include/pmm.h"
-#include "../include/kheap.h"
-#include "../include/paging.h"
-#include "../include/process.h"
+#include "vm.h"
+#include "pmm.h"
+#include "kheap.h"
+#include "paging.h"
+#include "process.h"
 
 /* Kernel's PML4 */
 static uint64_t* kernel_pml4 = 0;

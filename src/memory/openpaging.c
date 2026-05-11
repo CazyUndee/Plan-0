@@ -17,9 +17,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "../include/openpaging.h"
-#include "../include/openmemory.h"
-#include "../include/vga.h"
+#include "openpaging.h"
+#include "openmemory.h"
+#include "vga.h"
 #include <stddef.h>
 #include <stdint.h>
 

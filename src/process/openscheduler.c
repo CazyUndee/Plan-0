@@ -3,10 +3,10 @@
  */
 
 #include <stdint.h>
-#include "../include/scheduler.h"
-#include "../include/process.h"
-#include "../include/kheap.h"
-#include "../include/timer.h"
+#include "scheduler.h"
+#include "process.h"
+#include "kheap.h"
+#include "timer.h"
 
 #define TIME_SLICE_MS 10
 

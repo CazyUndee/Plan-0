@@ -6,8 +6,8 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include "../include/fs.h"
-#include "../include/kheap.h"
+#include "fs.h"
+#include "kheap.h"
 
 /* Filesystem state */
 static fs_boot_sector_t* boot_sector = 0;

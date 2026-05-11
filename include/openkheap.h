@@ -30,7 +30,7 @@ typedef struct {
     uint64_t free_blocks;
     uint64_t largest_free;
     uint32_t block_count;
-    uint32_t free_blocks;
+    uint32_t allocated_blocks;
 } openkheap_stats_t;
 
 // Core API

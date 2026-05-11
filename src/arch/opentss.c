@@ -3,8 +3,8 @@
  */
 
 #include <stdint.h>
-#include "../include/tss.h"
-#include "../include/kheap.h"
+#include "tss.h"
+#include "kheap.h"
 
 tss_t* tss = 0;
 

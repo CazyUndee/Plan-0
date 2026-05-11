@@ -17,10 +17,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "../include/state_graph.h"
-#include "../include/pmm.h"
-#include "../include/kheap.h"
-#include "../include/vga.h"
+#include "state_graph.h"
+#include "pmm.h"
+#include "kheap.h"
+#include "vga.h"
 #include <stddef.h>
 #include <stdint.h>
 

@@ -21,13 +21,13 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include "../include/vga.h"
-#include "../include/ps2_keyboard.h"
-#include "../include/fs.h"
-#include "../include/process.h"
-#include "../include/scheduler.h"
-#include "../include/pmm.h"
-#include "../include/ui_command.h"
+#include "vga.h"
+#include "ps2_keyboard.h"
+#include "fs.h"
+#include "process.h"
+#include "scheduler.h"
+#include "pmm.h"
+#include "ui_command.h"
 
 #define MAX_CMD_LEN 256
 

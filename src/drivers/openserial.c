@@ -6,7 +6,7 @@
  */
 
 #include <stdint.h>
-#include "../include/serial.h"
+#include "serial.h"
 
 #define COM1 0x3F8
 

@@ -5,9 +5,9 @@
  */
 
 #include <stdint.h>
-#include "../include/hid_keyboard.h"
-#include "../include/usb.h"
-#include "../include/kheap.h"
+#include "hid_keyboard.h"
+#include "usb.h"
+#include "kheap.h"
 
 /* Key buffer */
 #define KEY_BUFFER_SIZE 64

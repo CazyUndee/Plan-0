@@ -5,7 +5,7 @@
  */
 
 #include <stdint.h>
-#include "../include/user_bin.h"
+#include "user_bin.h"
 
 const unsigned char user_bin_data[] = {
     0x00

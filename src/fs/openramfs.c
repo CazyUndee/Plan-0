@@ -6,7 +6,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include "../include/kheap.h"
+#include "kheap.h"
 
 #define MAX_FILES 64
 #define MAX_FILENAME 32

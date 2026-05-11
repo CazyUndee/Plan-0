@@ -3,14 +3,14 @@
  */
 
 #include <stdint.h>
-#include "../include/syscall.h"
-#include "../include/process.h"
-#include "../include/scheduler.h"
-#include "../include/timer.h"
-#include "../include/ramfs.h"
-#include "../include/vm.h"
-#include "../include/pmm.h"
-#include "../include/vga.h"
+#include "syscall.h"
+#include "process.h"
+#include "scheduler.h"
+#include "timer.h"
+#include "ramfs.h"
+#include "vm.h"
+#include "pmm.h"
+#include "vga.h"
 
 extern void syscall_entry(void);
 

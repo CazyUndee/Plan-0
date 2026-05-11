@@ -1,6 +1,6 @@
 #include <stdint.h>
-#include "../include/rtc.h"
-#include "../include/io.h"
+#include "rtc.h"
+#include "io.h"
 
 static int bcd_to_bin(int bcd) {
     return (bcd & 0x0F) + ((bcd >> 4) * 10);

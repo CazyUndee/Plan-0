@@ -17,10 +17,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "../include/ui_command.h"
-#include "../include/ui_state.h"
-#include "../include/vga.h"
-#include "../include/process.h"
+#include "ui_command.h"
+#include "ui_state.h"
+#include "vga.h"
+#include "process.h"
 #include <stddef.h>
 #include <stdint.h>
 

@@ -17,10 +17,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "../include/openswitch.h"
-#include "../include/process.h"
-#include "../include/scheduler.h"
-#include "../include/timer.h"
+#include "openswitch.h"
+#include "process.h"
+#include "scheduler.h"
+#include "timer.h"
 #include <stdint.h>
 
 /* Assembly context switch */

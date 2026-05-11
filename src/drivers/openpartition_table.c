@@ -6,10 +6,10 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include "../include/gpt.h"
-#include "../include/disk.h"
-#include "../include/kheap.h"
-#include "../include/pmm.h"
+#include "gpt.h"
+#include "disk.h"
+#include "kheap.h"
+#include "pmm.h"
 
 /* Disk operations */
 static disk_ops_t* disk_operations = 0;

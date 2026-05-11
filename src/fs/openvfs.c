@@ -4,10 +4,10 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include "../include/vfs.h"
-#include "../include/kheap.h"
-#include "../include/ramfs.h"
-#include "../include/process.h"
+#include "vfs.h"
+#include "kheap.h"
+#include "ramfs.h"
+#include "process.h"
 
 #define MAX_VFS_NODES 128
 

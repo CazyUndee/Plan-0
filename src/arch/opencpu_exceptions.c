@@ -3,9 +3,9 @@
  */
 
 #include <stdint.h>
-#include "../include/io.h"
-#include "../include/idt.h"
-#include "../include/interrupts.h"
+#include "io.h"
+#include "idt.h"
+#include "interrupts.h"
 
 // External VGA functions
 extern void terminal_writestring(const char* str);

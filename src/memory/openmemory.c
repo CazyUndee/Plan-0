@@ -17,10 +17,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "../include/openmemory.h"
-#include "../include/pmm.h"
-#include "../include/multiboot.h"
-#include "../include/vga.h"
+#include "openmemory.h"
+#include "pmm.h"
+#include "multiboot.h"
+#include "vga.h"
 #include <stddef.h>
 #include <stdint.h>
 

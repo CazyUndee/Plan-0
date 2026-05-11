@@ -17,11 +17,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "../include/intent_dispatcher.h"
-#include "../include/state_graph.h"
-#include "../include/mft.h"
-#include "../include/vga.h"
-#include "../include/rtc.h"
+#include "intent_dispatcher.h"
+#include "state_graph.h"
+#include "mft.h"
+#include "vga.h"
+#include "rtc.h"
 #include <stddef.h>
 #include <stdint.h>
 

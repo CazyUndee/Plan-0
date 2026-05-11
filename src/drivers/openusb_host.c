@@ -1,4 +1,4 @@
-#include "../include/usb.h"
+#include "usb.h"
 
 static usb_device_t devices[16];
 static int device_count = 0;

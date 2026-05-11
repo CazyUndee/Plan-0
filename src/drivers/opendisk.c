@@ -5,8 +5,8 @@
  */
 
 #include <stdint.h>
-#include "../include/disk.h"
-#include "../include/io.h"
+#include "disk.h"
+#include "io.h"
 
 /* ATA Ports */
 #define ATA_DATA        (ATA_PRIMARY_IO + 0)   /* 0x1F0 */
