@@ -57,6 +57,6 @@ int openpart_format_partition(int partition_num, partition_type_t type);
 int openpart_delete_partition(int partition_num);
 
 // Disk information
-int openpart_get_disk_info(opendisk_info_t* info);
+int openpart_get_disk_info(disk_info_t* info);
 
 #endif // OPENPART_H
