@@ -23,23 +23,13 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "intent_dispatcher.h"
+#include "state_graph.h"
 
 // Maximum limits
 #define MAX_WINDOWS 64
 #define MAX_NODES 1024
 #define MAX_PROCESSES 64
 #define MAX_ID_LENGTH 64
-
-// Node types
-typedef enum {
-    NODE_TYPE_WINDOW,
-    NODE_TYPE_BUTTON,
-    NODE_TYPE_INPUT,
-    NODE_TYPE_TEXT,
-    NODE_TYPE_CONTAINER,
-    NODE_TYPE_MENU,
-    NODE_TYPE_PROCESS
-} node_type_t;
 
 // Window state
 typedef struct {
