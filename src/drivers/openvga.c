@@ -51,7 +51,7 @@ void openvga_init(void) {
 }
 
 // Set text color
-void openset_color(enum vga_color fg, enum vga_color bg) {
+void openset_color(vga_color_t fg, vga_color_t bg) {
     terminal_color = fg | bg << 4;
 }
 
@@ -158,7 +158,7 @@ void terminal_initialize(void) {
     openclear_screen();
 }
 
-void terminal_set_color(uint8_t fg, uint8_t bg) {
+void terminal_set_color(enum vga_color fg, enum vga_color bg) {
     openset_color(fg, bg);
 }
 
