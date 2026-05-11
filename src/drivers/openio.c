@@ -60,32 +60,3 @@ uint32_t openind(uint16_t port) {
 void openio_wait(void) {
     __asm__ volatile("outb %%al, $0x80" : : "a"(0));
 }
-
-// Legacy compatibility functions
-void outb(uint16_t port, uint8_t value) {
-    openoutb(port, value);
-}
-
-uint8_t inb(uint16_t port) {
-    return openinb(port);
-}
-
-void outw(uint16_t port, uint16_t value) {
-    openoutw(port, value);
-}
-
-uint16_t inw(uint16_t port) {
-    return openinw(port);
-}
-
-void outd(uint16_t port, uint32_t value) {
-    openoutd(port, value);
-}
-
-uint32_t ind(uint16_t port) {
-    return openind(port);
-}
-
-void io_wait(void) {
-    openio_wait();
-}
