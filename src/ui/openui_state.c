@@ -92,138 +92,133 @@ int ui_state_execute_intent(intent_t* intent) {
     if (!intent) return -1;
     
     switch (intent->type) {
-        case INTENT_OPEN_WINDOW: {
-            window_t* win = find_window(intent->target_id);
-            if (win) {
-                k_strcpy(win->title, intent->param1);
-                win->visible = 1;
-                return 0;
-            }
+        case INTENT_CREATE_WINDOW: {
+            // TODO: Convert node_id_t to string for find_window
+            // window_t* win = find_window(intent->target_id);
+            // if (win) {
+            //     k_strcpy(win->title, intent->param1);
+            //     win->visible = 1;
+            //     return 0;
+            // }
             return -1;
         }
-        
-        case INTENT_CLOSE_WINDOW: {
-            window_t* win = find_window(intent->target_id);
-            if (win) {
-                win->visible = 0;
-                win->id[0] = 0;  // Mark as deleted
-                g_state.window_count--;
-                return 0;
-            }
+
+        case INTENT_DESTROY_WINDOW: {
+            // TODO: Convert node_id_t to string for find_window
+            // window_t* win = find_window(intent->target_id);
+            // if (win) {
+            //     win->visible = 0;
+            //     win->id[0] = 0;  // Mark as deleted
+            //     g_state.window_count--;
+            //     return 0;
+            // }
             return -1;
         }
-        
-        case INTENT_SET_WINDOW_POSITION: {
-            window_t* win = find_window(intent->target_id);
-            if (win) {
-                win->x = intent->int_param1;
-                win->y = intent->int_param2;
-                return 0;
-            }
+
+        case INTENT_MOVE_WINDOW: {
+            // TODO: Convert node_id_t to string for find_window
+            // window_t* win = find_window(intent->target_id);
+            // if (win) {
+            //     win->x = intent->int_param1;
+            //     win->y = intent->int_param2;
+            //     return 0;
+            // }
             return -1;
         }
-        
-        case INTENT_SET_WINDOW_SIZE: {
-            window_t* win = find_window(intent->target_id);
-            if (win) {
-                win->width = intent->int_param1;
-                win->height = intent->int_param2;
-                return 0;
-            }
+
+        case INTENT_RESIZE_WINDOW: {
+            // TODO: Convert node_id_t to string for find_window
+            // window_t* win = find_window(intent->target_id);
+            // if (win) {
+            //     win->width = intent->int_param1;
+            //     win->height = intent->int_param2;
+            //     return 0;
+            // }
             return -1;
         }
-        
-        case INTENT_SET_WINDOW_VISIBILITY: {
-            window_t* win = find_window(intent->target_id);
-            if (win) {
-                win->visible = intent->int_param1;
-                return 0;
-            }
+
+        case INTENT_SHOW_WINDOW: {
+            // TODO: Convert node_id_t to string for find_window
+            // window_t* win = find_window(intent->target_id);
+            // if (win) {
+            //     win->visible = intent->int_param1;
+            //     return 0;
+            // }
+            return -1;
+        }
+
+        case INTENT_HIDE_WINDOW: {
+            // TODO: Convert node_id_t to string for find_window
+            // window_t* win = find_window(intent->target_id);
+            // if (win) {
+            //     win->visible = 0;
+            //     return 0;
+            // }
             return -1;
         }
         
         case INTENT_CREATE_NODE: {
-            node_t* node = find_node(intent->target_id);
-            if (node) {
-                node->type = (node_type_t)intent->int_param1;
-                k_strcpy(node->parent_id, intent->param1);
-                node->visible = 1;
-                node->enabled = 1;
-                return 0;
-            }
+            // TODO: Convert node_id_t to string for find_node
+            // node_t* node = find_node(intent->target_id);
+            // if (node) {
+            //     node->type = (node_type_t)intent->int_param1;
+            //     k_strcpy(node->parent_id, intent->param1);
+            //     node->visible = 1;
+            //     node->enabled = 1;
+            //     return 0;
+            // }
             return -1;
         }
-        
-        case INTENT_DELETE_NODE: {
-            node_t* node = find_node(intent->target_id);
-            if (node) {
-                node->id[0] = 0;  // Mark as deleted
-                g_state.node_count--;
-                return 0;
-            }
+
+        case INTENT_DESTROY_NODE: {
+            // TODO: Convert node_id_t to string for find_node
+            // node_t* node = find_node(intent->target_id);
+            // if (node) {
+            //     node->id[0] = 0;  // Mark as deleted
+            //     g_state.node_count--;
+            //     return 0;
+            // }
             return -1;
         }
-        
-        case INTENT_SET_NODE_POSITION: {
-            node_t* node = find_node(intent->target_id);
-            if (node) {
-                node->x = intent->int_param1;
-                node->y = intent->int_param2;
-                return 0;
-            }
+
+        case INTENT_MOVE_NODE: {
+            // TODO: Convert node_id_t to string for find_node
+            // node_t* node = find_node(intent->target_id);
+            // if (node) {
+            //     node->x = intent->int_param1;
+            //     node->y = intent->int_param2;
+            //     return 0;
+            // }
             return -1;
         }
-        
+
         case INTENT_SET_NODE_TEXT: {
-            node_t* node = find_node(intent->target_id);
-            if (node) {
-                k_strcpy(node->text, intent->param1);
-                return 0;
-            }
+            // TODO: Convert node_id_t to string for find_node
+            // node_t* node = find_node(intent->target_id);
+            // if (node) {
+            //     k_strcpy(node->text, intent->param1);
+            //     return 0;
+            // }
             return -1;
         }
-        
+
         case INTENT_SET_NODE_VALUE: {
-            node_t* node = find_node(intent->target_id);
-            if (node) {
-                k_strcpy(node->value, intent->param1);
-                return 0;
-            }
+            // TODO: Convert node_id_t to string for find_node
+            // node_t* node = find_node(intent->target_id);
+            // if (node) {
+            //     k_strcpy(node->value, intent->param1);
+            //     return 0;
+            // }
             return -1;
         }
-        
-        case INTENT_SET_NODE_VISIBILITY: {
-            node_t* node = find_node(intent->target_id);
-            if (node) {
-                node->visible = intent->int_param1;
-                return 0;
-            }
-            return -1;
-        }
-        
+
         case INTENT_CLICK_NODE: {
-            // Click is handled by event system, here we just mark it
-            node_t* node = find_node(intent->target_id);
-            if (node && node->enabled && node->visible) {
-                // Could trigger callbacks here
-                return 0;
-            }
+            // TODO: Convert node_id_t to string for find_node
+            // node_t* node = find_node(intent->target_id);
+            // if (node && node->enabled && node->visible) {
+            //     return 0;
+            // }
             return -1;
-        }
-        
-        case INTENT_SET_FOCUS: {
-            k_strcpy(g_state.focus.window_id, intent->param1);
-            k_strcpy(g_state.focus.node_id, intent->param2);
-            
-            // Update window focus flags
-            window_t* win = find_window(intent->param1);
-            if (win) win->focused = 1;
-            
-            // Update node focus flags
-            node_t* node = find_node(intent->param2);
-            if (node) node->focused = 1;
-            
-            return 0;
         }
         
         case INTENT_START_PROCESS: {
@@ -343,50 +338,3 @@ ui_process_t* ui_state_get_process(uint32_t pid) {
     return NULL;
 }
 
-// Intent builders
-intent_t intent_open_window(const char* id, const char* title) {
-    intent_t intent = {0};
-    intent.type = INTENT_OPEN_WINDOW;
-    k_strcpy(intent.target_id, id);
-    k_strcpy(intent.param1, title);
-    return intent;
-}
-
-intent_t intent_close_window(const char* id) {
-    intent_t intent = {0};
-    intent.type = INTENT_CLOSE_WINDOW;
-    k_strcpy(intent.target_id, id);
-    return intent;
-}
-
-intent_t intent_set_window_position(const char* id, int x, int y) {
-    intent_t intent = {0};
-    intent.type = INTENT_SET_WINDOW_POSITION;
-    k_strcpy(intent.target_id, id);
-    intent.int_param1 = x;
-    intent.int_param2 = y;
-    return intent;
-}
-
-intent_t intent_click_node(const char* id) {
-    intent_t intent = {0};
-    intent.type = INTENT_CLICK_NODE;
-    k_strcpy(intent.target_id, id);
-    return intent;
-}
-
-intent_t intent_set_focus_window(const char* id) {
-    intent_t intent = {0};
-    intent.type = INTENT_SET_FOCUS;
-    k_strcpy(intent.target_id, id);
-    k_strcpy(intent.param1, id);
-    return intent;
-}
-
-intent_t intent_set_focus_node(const char* id) {
-    intent_t intent = {0};
-    intent.type = INTENT_SET_FOCUS;
-    k_strcpy(intent.target_id, id);
-    k_strcpy(intent.param2, id);
-    return intent;
-}

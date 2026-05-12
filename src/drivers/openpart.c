@@ -25,8 +25,8 @@
 
 // External disk and GPT functions
 extern int disk_init(void);
-extern int disk_read(uint64_t lba, void* buffer, size_t sectors);
-extern int disk_write(uint64_t lba, const void* buffer, size_t sectors);
+extern int disk_read(uint32_t lba, uint32_t count, void* buffer);
+extern int disk_write(uint32_t lba, uint32_t count, const void* buffer);
 extern int gpt_init(void);
 extern int gpt_list_partitions(void);
 

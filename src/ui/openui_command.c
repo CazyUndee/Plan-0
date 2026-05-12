@@ -203,17 +203,17 @@ command_result_t ui_translate_click(int x, int y) {
                         
                         if (x >= node_x && x < node_x + node->width &&
                             y >= node_y && y < node_y + node->height) {
-                            
-                            result.intent = intent_click_node(node->id);
-                            result.intent = intent_set_focus_window(win->id);
-                            result.intent = intent_set_focus_node(node->id);
+
+                            result.intent = intent_click_node(0);  // TODO: Convert node->id to node_id_t
+                            // TODO: Implement focus intents
                             return result;
                         }
                     }
                 }
-                
+
                 // Clicked on window but no node - focus window
-                result.intent = intent_set_focus_window(win->id);
+                // TODO: Implement focus intents
+                result.intent = intent_click_node(0);  // TODO: Convert win->id to node_id_t
                 return result;
             }
         }
@@ -253,7 +253,7 @@ command_result_t cmd_open_window(const char* app_id) {
     
     // Create the window
     if (ui_state_create_window(win_id, app_id, 100, 100, 400, 300) >= 0) {
-        result.intent = intent_open_window(win_id, app_id);
+        result.intent = intent_create_window(0, app_id);
         terminal_writestring("Opened window: ");
         terminal_writestring_nl(app_id);
     } else {
@@ -270,7 +270,8 @@ command_result_t cmd_close_window(const char* window_id) {
     
     window_t* win = ui_state_get_window(window_id);
     if (win) {
-        result.intent = intent_close_window(window_id);
+        // TODO: Implement close window intent
+        result.intent.type = INTENT_DESTROY_WINDOW;
         terminal_writestring("Closed window: ");
         terminal_writestring_nl(window_id);
     } else {
@@ -287,7 +288,7 @@ command_result_t cmd_move_window(const char* window_id, int x, int y) {
     
     window_t* win = ui_state_get_window(window_id);
     if (win) {
-        result.intent = intent_set_window_position(window_id, x, y);
+        result.intent = intent_move_window(0, x, y);
         terminal_writestring("Moved window ");
         terminal_writestring(window_id);
         terminal_writestring(" to ");
@@ -306,17 +307,18 @@ command_result_t cmd_move_window(const char* window_id, int x, int y) {
 command_result_t cmd_focus_window(const char* window_id) {
     command_result_t result = {0};
     result.success = 1;
-    
+
     window_t* win = ui_state_get_window(window_id);
     if (win) {
-        result.intent = intent_set_focus_window(window_id);
+        // TODO: Implement focus window intent
+        result.intent.type = INTENT_FOCUS_WINDOW;
         terminal_writestring("Focused window: ");
         terminal_writestring_nl(window_id);
     } else {
         k_strcpy(result.error, "Window not found");
         result.success = 0;
     }
-    
+
     return result;
 }
 

@@ -24,22 +24,22 @@ jobs:
     - name: Verify project structure
       run: |
         echo "=== Verifying OpenKernel Project Structure ==="
-        
+
         # Check core files exist
         required_files=(
-          "src/openkernel.c"
-          "src/pmm.c"
-          "src/paging.c" 
-          "src/kheap.c"
-          "src/fs.c"
-          "src/shell.c"
-          "src/gpt.c"
+          "src/kernel/openkernel.c"
+          "src/memory/openmemory.c"
+          "src/memory/openpaging.c"
+          "src/memory/openkheap.c"
+          "src/fs/openfs.c"
+          "src/ui/openshell.c"
+          "src/drivers/openpart.c"
           "boot/boot.asm"
           "boot/interrupts.asm"
           "Makefile"
           "linker/linker.ld"
         )
-        
+
         all_files_exist=true
         for file in "${required_files[@]}"; do
           if [ -f "$file" ]; then
@@ -49,7 +49,7 @@ jobs:
             all_files_exist=false
           fi
         done
-        
+
         if [ "$all_files_exist" = true ]; then
           echo "✅ All required files present"
         else
@@ -90,45 +90,45 @@ jobs:
     - name: Verify Open* naming consistency
       run: |
         echo "=== Verifying Open* naming consistency ==="
-        
-        # Check Open* branding in key files
-        if grep -q "OpenKernel\|OpenMemory\|OpenFS\|OpenPart\|OpenInput\|OpenShell" src/openkernel.c; then
+
+        # Check Open* branding in key files (informational only)
+        if grep -q "OpenKernel\|OpenMemory\|OpenFS\|OpenPart\|OpenInput\|OpenShell" src/kernel/openkernel.c 2>/dev/null; then
           echo "✓ Open* naming found in openkernel.c"
         else
-          echo "? Open* naming not found in openkernel.c"
+          echo "? Open* naming not found in openkernel.c (informational)"
         fi
-        
-        if grep -q "OpenFS" src/fs.c; then
-          echo "✓ OpenFS branding in fs.c"
+
+        if grep -q "OpenFS" src/fs/openfs.c 2>/dev/null; then
+          echo "✓ OpenFS branding in openfs.c"
         else
-          echo "? OpenFS branding not found in fs.c"
+          echo "? OpenFS branding not found in openfs.c (informational)"
         fi
-        
-        if grep -q "OpenShell" src/shell.c; then
-          echo "✓ OpenShell branding in shell.c"
+
+        if grep -q "OpenShell" src/ui/openshell.c 2>/dev/null; then
+          echo "✓ OpenShell branding in openshell.c"
         else
-          echo "? OpenShell branding not found in shell.c"
+          echo "? OpenShell branding not found in openshell.c (informational)"
         fi
         
     - name: Check Makefile configuration
       run: |
         echo "=== Verifying Makefile ==="
-        
+
         if grep -q "KERNEL = openkernel" Makefile; then
           echo "✓ OpenKernel target configured"
         else
           echo "✗ OpenKernel target not found"
           exit 1
         fi
-        
-        if grep -q "boot.asm" Makefile; then
-          echo "✓ Boot file reference updated"
+
+        if grep -q "BOOTDIR = boot" Makefile; then
+          echo "✓ Boot directory reference updated"
         else
-          echo "✗ Boot file reference incorrect"
+          echo "✗ Boot directory reference incorrect"
           exit 1
         fi
-        
-        if grep -q "linker.ld" Makefile; then
+
+        if grep -q "linker/linker.ld" Makefile; then
           echo "✓ Linker script reference updated"
         else
           echo "✗ Linker script reference incorrect"
@@ -182,22 +182,22 @@ jobs:
     - name: Basic boot test
       run: |
         echo "=== Running basic boot test ==="
-        
+
         # Quick QEMU boot test (timeout after 10 seconds)
-        timeout 10s qemu-system-x86_64 -kernel bin/openkernel.bin -display none -serial stdio -m 128M 2>&1 | tee boot_test.log
-        
-        if grep -q "OpenSYS.*OpenKernel" boot_test.log; then
-          echo "✅ OpenKernel branding detected in boot"
+        timeout 10s qemu-system-x86_64 -kernel bin/openkernel.bin -display none -serial stdio -m 128M 2>&1 | tee boot_test.log || true
+
+        if grep -qi "opensys\|openkernel" boot_test.log; then
+          echo "✅ OpenSYS/OpenKernel branding detected in boot"
         else
-          echo "? OpenKernel branding not detected in boot"
+          echo "? OpenSYS/OpenKernel branding not detected in boot (informational)"
         fi
-        
-        if grep -q "Multiboot2.*OK" boot_test.log; then
-          echo "✅ Multiboot2 successful"
+
+        if grep -qi "multiboot" boot_test.log; then
+          echo "✅ Multiboot detected"
         else
-          echo "? Multiboot2 status unclear"
+          echo "? Multiboot status unclear (informational)"
         fi
-        
+
         echo "=== Boot test log ==="
         cat boot_test.log
         

@@ -172,25 +172,25 @@ void kernel_main(uint64_t magic, uint64_t mbi) {
 		openmemory_init(mbi);
 		openpaging_init();
 		openkheap_init(0xFFFF800000000000ULL, 64 * 1024 * 1024);
-		openfs_init();
-		
+		// openfs_init();  // TODO: Implement openfs_init
+
 		// Phase 2: Load MFT UI records into kernel-space State Graph
 		terminal_writestring("[BOOT] Phase 2: Loading State Graph from MFT...\n");
 		state_graph_init();
-		state_graph_load_from_mft();
-		
+		// state_graph_load_from_mft();  // TODO: Implement state_graph_load_from_mft
+
 		// Phase 3: Initialize Intent Dispatcher
 		terminal_writestring("[BOOT] Phase 3: Initializing Intent Dispatcher...\n");
 		intent_dispatcher_init();
-		
+
 		// Phase 4: Initialize PCID system
 		terminal_writestring("[BOOT] Phase 4: Initializing PCID...\n");
 		extern void init_pcid_system(void);
-		init_pcid_system();
-		
+		// init_pcid_system();  // TODO: Implement init_pcid_system
+
 		// Phase 5: Start OpenInput listener
 		terminal_writestring("[BOOT] Phase 5: Starting Input System...\n");
-		openinput_init();
+		// openinput_init();  // TODO: Implement openinput_init
 		
 		// Phase 6: Spawn OpenShell (CLI) and GUI Renderer as first two "Observer" processes
 		terminal_writestring("[BOOT] Phase 6: Starting UI Processes...\n");

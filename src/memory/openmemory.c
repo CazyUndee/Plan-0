@@ -227,3 +227,34 @@ size_t pmm_get_total(void) { return pmm_total_pages_count * PAGE_SIZE; }
 size_t pmm_get_free(void) { return pmm_free_pages_count * PAGE_SIZE; }
 size_t pmm_get_total_pages(void) { return pmm_total_pages_count; }
 size_t pmm_get_free_pages(void) { return pmm_free_pages_count; }
+
+// Reference counting functions for COW
+int pmm_ref_count(phys_addr_t addr) {
+    uint64_t page = addr / PAGE_SIZE;
+    if (page >= pmm_total_pages_count) return 0;
+    return pmm_ref_counts[page];
+}
+
+void pmm_ref_inc(phys_addr_t addr) {
+    uint64_t page = addr / PAGE_SIZE;
+    if (page < pmm_total_pages_count) {
+        pmm_ref_counts[page]++;
+    }
+}
+
+int pmm_ref_dec(phys_addr_t addr) {
+    uint64_t page = addr / PAGE_SIZE;
+    if (page >= pmm_total_pages_count) return -1;
+    if (pmm_ref_counts[page] > 0) {
+        return --pmm_ref_counts[page];
+    }
+    return 0;
+}
+
+void pmm_ref_init_range(phys_addr_t start, size_t length) {
+    uint64_t page_start = start / PAGE_SIZE;
+    uint64_t page_end = (start + length + PAGE_SIZE - 1) / PAGE_SIZE;
+    for (uint64_t page = page_start; page < page_end && page < pmm_total_pages_count; page++) {
+        pmm_ref_counts[page] = 1;
+    }
+}

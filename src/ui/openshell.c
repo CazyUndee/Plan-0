@@ -27,6 +27,7 @@
 #include "process.h"
 #include "scheduler.h"
 #include "pmm.h"
+#include "rtc.h"
 #include "ui_command.h"
 
 #define MAX_CMD_LEN 256
@@ -91,8 +92,8 @@ static void cmd_show_memory(void) {
 
 static void cmd_ps(void) {
     terminal_writestring_nl("");
-    terminal_writestring_nl("  PID  Name        State     CPU Time");
-    terminal_writestring_nl("  ---  ----------  --------  --------");
+    terminal_writestring_nl("  PID  Name        Active    Window");
+    terminal_writestring_nl("  ---  ----------  --------  ------");
 
     extern ui_process_t* process_get_by_index(int i);
     extern int process_get_count(void);
@@ -100,7 +101,7 @@ static void cmd_ps(void) {
     int count = 0;
     for (int i = 0; i < 64; i++) {
         ui_process_t* p = process_get_by_index(i);
-        if (p && p->state != 0) {
+        if (p && p->active) {
             terminal_writestring("  ");
             terminal_put_dec(p->pid);
             terminal_writestring("  ");
@@ -109,16 +110,10 @@ static void cmd_ps(void) {
             int namelen = k_strlen(p->name);
             for (int j = namelen; j < 10; j++) terminal_putchar(' ');
 
-            const char* state_str = "???";
-            if (p->state == 1) state_str = "READY";
-            else if (p->state == 2) state_str = "RUNNING";
-            else if (p->state == 3) state_str = "BLOCKED";
-            else if (p->state == 4) state_str = "ZOMBIE";
-            terminal_writestring(state_str);
+            terminal_writestring(p->active ? "YES       " : "NO        ");
 
-            terminal_writestring("  ");
-            terminal_put_dec(p->cpu_time);
-            terminal_writestring_nl("ms");
+            terminal_put_dec(p->main_window_id);
+            terminal_writestring_nl("");
             count++;
         }
     }
@@ -536,62 +531,6 @@ static void cmd_echo(const char* text) {
         terminal_writestring_nl(text);
     } else {
         terminal_putchar('\n');
-    }
-}
-
-static void cmd_open_window(const char* app_id) {
-    command_result_t result = cmd_open_window(app_id);
-    if (!result.success) {
-        terminal_writestring("  Error: ");
-        terminal_writestring_nl(result.error);
-    }
-}
-
-static void cmd_close_window(const char* window_id) {
-    command_result_t result = cmd_close_window(window_id);
-    if (!result.success) {
-        terminal_writestring("  Error: ");
-        terminal_writestring_nl(result.error);
-    }
-}
-
-static void cmd_move_window(const char* window_id, int x, int y) {
-    command_result_t result = cmd_move_window(window_id, x, y);
-    if (!result.success) {
-        terminal_writestring("  Error: ");
-        terminal_writestring_nl(result.error);
-    }
-}
-
-static void cmd_focus_window(const char* window_id) {
-    command_result_t result = cmd_focus_window(window_id);
-    if (!result.success) {
-        terminal_writestring("  Error: ");
-        terminal_writestring_nl(result.error);
-    }
-}
-
-static void cmd_list_windows(void) {
-    command_result_t result = cmd_list_windows();
-    if (!result.success) {
-        terminal_writestring("  Error: ");
-        terminal_writestring_nl(result.error);
-    }
-}
-
-static void cmd_list_processes(void) {
-    command_result_t result = cmd_list_processes();
-    if (!result.success) {
-        terminal_writestring("  Error: ");
-        terminal_writestring_nl(result.error);
-    }
-}
-
-static void cmd_show_system_info(void) {
-    command_result_t result = cmd_show_system_info();
-    if (!result.success) {
-        terminal_writestring("  Error: ");
-        terminal_writestring_nl(result.error);
     }
 }
 

@@ -35,7 +35,7 @@ KERNEL_SRCS = kernel/openkernel.c kernel/opensys.c kernel/opensystem_calls.c ker
 MEMORY_SRCS = memory/openmemory.c memory/openkheap.c memory/openpaging.c
 FS_SRCS = fs/openfs.c fs/openvfs.c fs/openramfs.c
 ARCH_SRCS = arch/opengdt.c arch/opengdt_flush.asm arch/openidt.c arch/opentss.c arch/openpic.c arch/opentimer.c arch/opencpu_exceptions.c arch/openinterrupt_handlers.c
-DRIVER_SRCS = drivers/opendisk.c drivers/openvga.c drivers/openhid.c drivers/openinput.c drivers/openusb_host.c drivers/openserial.c drivers/openio.c drivers/openpart.c drivers/openrtc.c
+DRIVER_SRCS = drivers/opendisk.c drivers/openvga.c drivers/openhid.c drivers/openinput.c drivers/openusb_host.c drivers/openserial.c drivers/openio.c drivers/openpart.c drivers/openpartition_table.c drivers/openrtc.c
 PROCESS_SRCS = process/openprocess.c process/openscheduler.c process/openprograms.c process/openvm.c
 UI_SRCS = ui/openshell.c ui/openui_command.c ui/openui_state.c
 
@@ -95,6 +95,11 @@ $(SYSCALL_OBJ): $(BOOTDIR)/syscall.asm | $(OBJDIR)
 $(OBJDIR)/%.o: $(SRCDIR)/%.c | $(OBJDIR)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c -o $@ $<
+
+# Assembly objects - handle subdirectories
+$(OBJDIR)/%.o: $(SRCDIR)/%.asm | $(OBJDIR)
+	@mkdir -p $(dir $@)
+	$(NASM) $(NASMFLAGS) -o $@ $<
 
 # Link kernel
 $(TARGET): $(BOOT_OBJ) $(EXTRA_ASM_OBJS) $(OBJECTS) | $(BINDIR)
