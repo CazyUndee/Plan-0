@@ -1,4 +1,4 @@
-# Plan 0 v0.4.0
+# Plan 0 v0.4.1
 
 A pure 64-bit operating system built from scratch.
 
@@ -62,7 +62,7 @@ This project is licensed under the GNU Affero General Public License v3.0. See t
 Download the latest release from GitHub:
 
 1. Go to [Plan 0 Releases](https://github.com/CazyUndee/Plan0/releases)
-2. Download the latest release (e.g., v0.4.0)
+2. Download the latest release (e.g., v0.4.1)
 3. Choose either `os.iso` (bootable ISO) or `kernel.bin` (raw kernel)
 
 ### Running with QEMU
@@ -160,7 +160,13 @@ NTFS-inspired design:
 
 ## Changelog
 
-### v0.4.0 (Current)
+### v0.4.1 (Current)
+- **Removed all Open\* naming** across the entire codebase
+- **Fixed GitHub Actions CI/CD pipeline** with build → verify → release stages
+- **Fixed multiple compilation errors** across drivers, UI, and kernel
+- **Updated build system** with complete 64-bit-only toolchain
+
+### v0.4.0
 - **Removed all 32-bit code** - pure 64-bit architecture
 - **Enhanced filesystem** with non-resident data support
 - **Fixed GitHub Actions CI/CD** workflow

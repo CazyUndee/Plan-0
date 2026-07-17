@@ -583,7 +583,7 @@ static void cmd_echo(const char* text) {
 
 static void cmd_version(void) {
     terminal_writestring_nl("");
-terminal_writestring_nl(" Plan 0 v0.4.0");
+    terminal_writestring_nl(" Plan 0 v0.4.1");
     terminal_writestring_nl("  Plan 0 - 64-bit Operating System");
     terminal_writestring_nl("  FS - NTFS-style filesystem");
     terminal_writestring_nl("  Shell - Natural language interface");
@@ -862,7 +862,7 @@ static void cmd_whoami(void) {
 }
 
 static void cmd_uname(void) {
-    terminal_writestring("  Plan 0 v0.4.0");
+    terminal_writestring("  Plan 0 v0.4.1");
 }
 
 static void cmd_env(void) {
@@ -1107,7 +1107,7 @@ void shell_run(void) {
     ui_command_init();
 
     terminal_clear();
-    terminal_writestring_nl("Plan 0 v0.4.0");
+    terminal_writestring_nl("Plan 0 v0.4.1");
     terminal_writestring_nl("Filesystem ready.");
     terminal_writestring_nl("Unified UI system initialized.");
     terminal_writestring_nl("Type 'help' for commands.\n");

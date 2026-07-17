@@ -101,8 +101,8 @@ void kernel_main(uint64_t magic, uint64_t mbi) {
     terminal_initialize();
     serial_init();
 
-    terminal_writestring("Plan 0 v0.4.0\n");
-    serial_writestring("Plan 0 v0.4.0\n");
+    terminal_writestring("Plan 0 v0.4.1\n");
+    serial_writestring("Plan 0 v0.4.1\n");
 	terminal_writestring("=============================\n\n");
 
 	if (magic == 0x2BADB002) {
