@@ -43,7 +43,7 @@ jobs:
         run: |
           mkdir -p obj/kernel obj/memory obj/fs obj/arch obj/drivers obj/process obj/ui
 
-          for src in kernel sys elf state_graph intent_dispatcher intent_schema switch; do
+          for src in kernel sys elf state_graph intent_dispatcher intent_schema switch kstring; do
             if [ -f "src/kernel/${src}.c" ]; then
               gcc -m64 -c "src/kernel/${src}.c" -o "obj/kernel/${src}.o" \
                 -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \

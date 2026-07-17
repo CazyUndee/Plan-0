@@ -88,8 +88,6 @@ static usb_device_t* keyboard_dev = 0;
 
 /* Convert HID code to ASCII */
 char hid_to_ascii(uint8_t hid_code, uint8_t modifiers) {
-    if (hid_code >= 256) return 0;
-    
     if (modifiers & (HID_MOD_LSHIFT | HID_MOD_RSHIFT)) {
         return hid_keyboard_us_shift[hid_code];
     }

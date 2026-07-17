@@ -32,20 +32,12 @@
 #include "intent_dispatcher.h"
 #include "timer.h"
 #include "io.h"
+#include "kstring.h"
 
 #define MAX_CMD_LEN 256
 
 static char cwd[256] = "/";
 
-static int k_strlen(const char* s) { int n = 0; while (*s++) n++; return n; }
-static int k_strcmp(const char* a, const char* b) {
-    while (*a && *a == *b) { a++; b++; }
-    return *a - *b;
-}
-static int k_strncmp(const char* a, const char* b, int n) {
-    while (n-- && *a && *a == *b) { a++; b++; }
-    return n < 0 ? 0 : *a - *b;
-}
 static char* trim(char* s) {
     while (*s == ' ') s++;
     char* end = s + k_strlen(s) - 1;
@@ -878,10 +870,6 @@ static void cmd_ping(const char* addr) {
     terminal_writestring("  Pinging ");
     terminal_writestring(addr ? addr : "127.0.0.1");
     terminal_writestring_nl(" (network stack not yet fully implemented)");
-}
-
-static void cmd_cat(const char* filename) {
-    cmd_read_file(filename);
 }
 
 static void cmd_clear(void) {

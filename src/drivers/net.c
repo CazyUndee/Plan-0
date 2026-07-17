@@ -56,7 +56,7 @@ static inline uint32_t inl_r(uint16_t p) { return inl(p); }
 static inline void   outl_r(uint16_t p, uint32_t v) { outl(p, v); }
 
 int net_drv_init(void) {
-    uint8_t bus, dev, func;
+    int bus, dev, func;
     int found = 0;
 
     terminal_writestring("[NET] Probing for RTL8139...\n");

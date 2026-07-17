@@ -24,32 +24,10 @@
 #include "fs.h"
 #include <stddef.h>
 #include <stdint.h>
+#include "kstring.h"
 
 // Global state graph instance
 static state_graph_t g_state_graph;
-
-// Helper functions
-static void k_memcpy(void* dst, const void* src, size_t n) {
-    uint8_t* d = (uint8_t*)dst;
-    const uint8_t* s = (const uint8_t*)src;
-    while (n--) *d++ = *s++;
-}
-
-static int k_strlen(const char* s) {
-    int n = 0;
-    while (*s++) n++;
-    return n;
-}
-
-static void k_strcpy(char* dst, const char* src) {
-    while (*src) *dst++ = *src++;
-    *dst = 0;
-}
-
-static int k_strcmp(const char* a, const char* b) {
-    while (*a && *a == *b) { a++; b++; }
-    return *a - *b;
-}
 
 // Simple spinlock
 static void lock_acquire(volatile uint32_t* lock) {

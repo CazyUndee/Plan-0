@@ -23,23 +23,7 @@
 #include "process.h"
 #include <stddef.h>
 #include <stdint.h>
-
-// Helper functions
-static int k_strlen(const char* s) { 
-    int n = 0; 
-    while (*s++) n++; 
-    return n; 
-}
-
-static int k_strcmp(const char* a, const char* b) {
-    while (*a && *a == *b) { a++; b++; }
-    return *a - *b;
-}
-
-static void k_strcpy(char* dst, const char* src) {
-    while (*src) *dst++ = *src++;
-    *dst = 0;
-}
+#include "kstring.h"
 
 static char* k_strstr(const char* haystack, const char* needle) {
     while (*haystack) {

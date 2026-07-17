@@ -428,6 +428,7 @@ int usb_enumerate(void) {
 
         /* Use stub_dev with the new address */
         stub_dev.address = dev_addr;
+        (void)stub_dev;
 
         /* Manually build control transfer (same pattern as above) */
         td_setup_idx = td_alloc();

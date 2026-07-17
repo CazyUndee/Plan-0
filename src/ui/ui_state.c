@@ -26,21 +26,7 @@
 static ui_state_t g_state;
 
 // Helper functions
-static int k_strlen(const char* s) { 
-    int n = 0; 
-    while (*s++) n++; 
-    return n; 
-}
-
-static int k_strcmp(const char* a, const char* b) {
-    while (*a && *a == *b) { a++; b++; }
-    return *a - *b;
-}
-
-static void k_strcpy(char* dst, const char* src) {
-    while (*src) *dst++ = *src++;
-    *dst = 0;
-}
+#include "kstring.h"
 
 // Initialize the state system
 void ui_state_init(void) {
@@ -237,7 +223,7 @@ int ui_state_execute_intent(intent_t* intent) {
         
         case INTENT_STOP_PROCESS: {
             for (int i = 0; i < MAX_PROCESSES; i++) {
-                if (g_state.processes[i].pid == intent->int_param1) {
+                if (g_state.processes[i].pid == (uint32_t)intent->int_param1) {
                     g_state.processes[i].name[0] = 0;
                     g_state.processes[i].active = 0;
                     g_state.process_count--;

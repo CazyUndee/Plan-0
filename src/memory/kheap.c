@@ -180,5 +180,5 @@ void kheap_get_stats(kheap_stats_t* stats) {
 }
 
 // Legacy compatibility functions
-void* kheap_get_used(void) { return bytes_used; }
-void* kheap_get_free(void) { return bytes_free; }
+uint64_t kheap_get_used(void) { return bytes_used; }
+uint64_t kheap_get_free(void) { return bytes_free; }

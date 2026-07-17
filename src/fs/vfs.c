@@ -22,16 +22,6 @@ static fd_table_t* get_current_fd_table(void) {
     return 0;
 }
 
-static int k_strlen(const char* s) { int n = 0; while (*s++) n++; return n; }
-static int k_strcmp(const char* a, const char* b) {
-    while (*a && *a == *b) { a++; b++; }
-    return *a - *b;
-}
-static int k_strncmp(const char* a, const char* b, int n) {
-    while (n-- && *a && *a == *b) { a++; b++; }
-    return n < 0 ? 0 : *a - *b;
-}
-
 static vfs_ops_t* find_ops(const char* path) {
     (void)path;
     if (mount_count > 0 && mounts[0].active) {

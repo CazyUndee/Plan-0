@@ -13,7 +13,7 @@ void tss_init(void) {
     if (!tss) return;
     
     /* Clear TSS */
-    for (int i = 0; i < sizeof(tss_t); i++) {
+    for (size_t i = 0; i < sizeof(tss_t); i++) {
         ((uint8_t*)tss)[i] = 0;
     }
     

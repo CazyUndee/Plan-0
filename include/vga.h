@@ -21,6 +21,7 @@
 #define VGA_H
 
 #include <stdint.h>
+#include <stddef.h>
 
 // Display modes
 typedef enum {
@@ -70,5 +71,16 @@ void vga_println(const char* str);
 // Graphics operations (future)
 void vga_pixel(uint16_t x, uint16_t y, vga_color_t color);
 void vga_line(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, vga_color_t color);
+
+// Terminal wrappers (defined in vga.c)
+void terminal_initialize(void);
+void terminal_set_color(vga_color_t fg, vga_color_t bg);
+void terminal_clear(void);
+void terminal_putchar(char c);
+void terminal_write(const char* data, size_t size);
+void terminal_writestring(const char* data);
+void terminal_writestring_nl(const char* data);
+void terminal_put_hex(uint64_t n);
+void terminal_put_dec(uint64_t n);
 
 #endif // VGA_H

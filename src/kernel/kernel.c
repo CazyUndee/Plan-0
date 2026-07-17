@@ -20,65 +20,35 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include "multiboot.h"
 #include "vga.h"
 #include "serial.h"
-#include "user_bin.h"
-#include "pmm.h"
-#include "kheap.h"
-#include "timer.h"
-#include "process.h"
-#include "ramfs.h"
-#include "ps2_keyboard.h"
 #include "memory.h"
-#include "paging.h"
 #include "kheap.h"
-#include "fs.h"
-#include "part.h"
-#include "disk.h"
-#include "input.h"
-#include "shell.h"
-#include "vga.h"
-#include "io.h"
-#include "interrupts.h"
-#include "usb.h"
-#include "ehci.h"
-#include "net.h"
-#include "process.h"
-#include "scheduler.h"
-#include "vm.h"
-#include "elf.h"
-#include "sys.h"
-#include "idt.h"
+#include "paging.h"
 #include "gdt.h"
+#include "idt.h"
+#include "timer.h"
 #include "tss.h"
-#include "rtc.h"
-#include "vfs.h"
+#include "pic.h"
+#include "interrupts.h"
+#include "disk.h"
+#include "scheduler.h"
+#include "process.h"
+#include "fs.h"
+#include "ramfs.h"
+#include "sys.h"
+#include "input.h"
+#include "pci.h"
+#include "ehci.h"
+#include "usb.h"
+#include "net_drv.h"
 #include "ui_state.h"
 #include "ui_command.h"
-
-static void test_proc_a(void* arg) {
-	(void)arg;
-	volatile uint16_t* vga = (volatile uint16_t*)0xB8000;
-	while (1) {
-		vga[2 * 80 + 60] = 'A' | 0x0A00;
-		extern void process_yield(void);
-		process_yield();
-		vga[2 * 80 + 60] = ' ' | 0x0A00;
-		process_yield();
-	}
-}
-
-static void test_proc_b(void* arg) {
-	(void)arg;
-	volatile uint16_t* vga = (volatile uint16_t*)0xB8000;
-	while (1) {
-		vga[2 * 80 + 62] = 'B' | 0x0C00;
-		extern void process_yield(void);
-		process_yield();
-		vga[2 * 80 + 62] = ' ' | 0x0C00;
-		process_yield();
-	}
-}
+#include "intent_dispatcher.h"
+#include "syscall.h"
+#include "rtc.h"
+#include "vfs.h"
 
 extern void paging_init(void);
 extern void idt_init(void);

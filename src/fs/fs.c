@@ -72,13 +72,6 @@ static uint64_t alloc_cluster(void) {
     return (uint64_t)-1; /* Out of space */
 }
 
-/* Free a cluster */
-static void free_cluster(uint64_t cluster) {
-    uint64_t byte = cluster / 8;
-    uint8_t bit = cluster % 8;
-    cluster_bitmap[byte] &= ~(1 << bit);
-}
-
 /* Allocate MFT entry */
 static uint64_t alloc_mft_entry(void) {
     for (uint64_t i = MFT_FIRST_USER; i < boot_sector->mft_size; i++) {

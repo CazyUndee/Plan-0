@@ -22,57 +22,6 @@ static uint32_t partition_count = 0;
 /* CRC32 is optional during early development */
 #define GPT_VALIDATE_CRC 0
 
-/* CRC32 lookup table */
-static uint32_t crc32_table[256];
-static int crc32_initialized = 0;
-
-/*
- * Initialize CRC32 table
- */
-static void init_crc32(void) {
-    for (uint32_t i = 0; i < 256; i++) {
-        uint32_t crc = i;
-        for (int j = 0; j < 8; j++) {
-            if (crc & 1) {
-                crc = (crc >> 1) ^ 0xEDB88320;
-            } else {
-                crc >>= 1;
-            }
-        }
-        crc32_table[i] = crc;
-    }
-    crc32_initialized = 1;
-}
-
-/*
- * Calculate CRC32
- */
-static uint32_t calc_crc32(const void* data, size_t len) {
-    if (!crc32_initialized) init_crc32();
-    
-    uint32_t crc = 0xFFFFFFFF;
-    const uint8_t* p = (const uint8_t*)data;
-    
-    for (size_t i = 0; i < len; i++) {
-        crc = crc32_table[(crc ^ p[i]) & 0xFF] ^ (crc >> 8);
-    }
-    
-    return ~crc;
-}
-
-/*
- * Convert UTF-16LE to ASCII (lossy, replaces non-ASCII with '?')
- */
-static void utf16le_to_ascii(const uint16_t* utf16, char* ascii, int max_len) {
-    int i;
-    for (i = 0; i < max_len - 1; i++) {
-        uint16_t c = utf16[i];
-        if (c == 0) break;
-        ascii[i] = (c < 128) ? (char)c : '?';
-    }
-    ascii[i] = '\0';
-}
-
 /*
  * Check if two GUIDs are equal
  */

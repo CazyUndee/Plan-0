@@ -26,26 +26,10 @@
 #include "ramfs.h"
 #include <stddef.h>
 #include <stdint.h>
+#include "kstring.h"
 
 // Global dispatcher instance
 static intent_dispatcher_t g_dispatcher;
-
-// Helper functions
-static int k_strlen(const char* s) {
-    int n = 0;
-    while (*s++) n++;
-    return n;
-}
-
-static void k_strcpy(char* dst, const char* src) {
-    while (*src) *dst++ = *src++;
-    *dst = 0;
-}
-
-static int k_strcmp(const char* a, const char* b) {
-    while (*a && *a == *b) { a++; b++; }
-    return *a - *b;
-}
 
 // Simple checksum for intent validation
 static uint32_t calculate_checksum(intent_t* intent) {
