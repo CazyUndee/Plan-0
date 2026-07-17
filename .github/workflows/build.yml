@@ -38,7 +38,7 @@ jobs:
           mkdir -p obj/kernel obj/memory obj/fs obj/arch obj/drivers obj/process obj/ui
 
           # Build kernel files
-          for src in kernel sys elf state_graph intent_dispatcher switch; do
+          for src in kernel sys elf state_graph intent_dispatcher intent_schema switch; do
             if [ -f "src/kernel/${src}.c" ]; then
               gcc -m64 -c "src/kernel/${src}.c" -o "obj/kernel/${src}.o" \
                 -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
@@ -74,7 +74,7 @@ jobs:
           done
 
           # Build driver files
-          for src in disk vga hid input usb_host serial io partition_table rtc; do
+          for src in disk vga hid input usb_host serial io partition_table rtc pci ehci net; do
             if [ -f "src/drivers/${src}.c" ]; then
               gcc -m64 -c "src/drivers/${src}.c" -o "obj/drivers/${src}.o" \
                 -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
@@ -92,7 +92,7 @@ jobs:
           done
 
           # Build UI files
-          for src in ui_command ui_state; do
+          for src in ui_command ui_state shell; do
             if [ -f "src/ui/${src}.c" ]; then
               gcc -m64 -c "src/ui/${src}.c" -o "obj/ui/${src}.o" \
                 -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
@@ -102,9 +102,10 @@ jobs:
 
           # Build architecture assembly
           nasm -f elf64 src/arch/gdt_flush.asm -o obj/arch/gdt_flush.o
+          nasm -f elf64 boot/switch_to_pcid.asm -o obj/switch_to_pcid.o
 
       - name: Link kernel
-        run: ld -m elf_x86_64 -T linker/linker.ld -nostdlib -o bin/plan0.bin obj/boot.o obj/interrupts.o obj/context_switch.o obj/syscall_asm.o obj/**/*.o
+        run: ld -m elf_x86_64 -T linker/linker.ld -nostdlib -o bin/plan0.bin obj/boot.o obj/interrupts.o obj/context_switch.o obj/syscall_asm.o obj/switch_to_pcid.o obj/**/*.o
 
       - name: Show kernel
         run: |
