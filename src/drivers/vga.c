@@ -142,23 +142,13 @@ void vga_put_dec(uint64_t n) {
     vga_writestring(&buf[i]);
 }
 
-// Get display information
-void vga_get_info(vga_info_t* info) {
-    if (!info) return;
-    
-    info->width = 80;
-    info->height = 25;
-    info->colors = 16;
-    info->mode = 0;  // Text mode
-}
-
 // Legacy compatibility functions
 void terminal_initialize(void) {
-    vga_set_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
+    vga_set_color(COLOR_LIGHT_GREY, COLOR_BLACK);
     vga_clear_screen();
 }
 
-void terminal_set_color(enum vga_color fg, enum vga_color bg) {
+void terminal_set_color(vga_color_t fg, vga_color_t bg) {
     vga_set_color(fg, bg);
 }
 
@@ -189,5 +179,17 @@ void terminal_put_hex(uint64_t n) {
 void terminal_put_dec(uint64_t n) {
     vga_put_dec(n);
 }
+
+// Get display information
+void vga_get_info(vga_info_t* info) {
+    if (!info) return;
+    
+    info->width = 80;
+    info->height = 25;
+    info->colors = 16;
+    info->mode = 0;  // Text mode
+}
+
+
 
 
