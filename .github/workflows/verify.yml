@@ -87,28 +87,6 @@ jobs:
           exit 1
         fi
         
-    - name: Verify naming consistency
-      run: |
-        echo "=== Verifying naming consistency ==="
-
-        # Check branding in key files (informational)
-        if grep -q "Plan 0\|Plan0" src/kernel/kernel.c 2>/dev/null; then
-          echo "✓ Plan 0 naming found in kernel.c"
-        else
-          echo "? Plan 0 naming not found in kernel.c (informational)"
-        fi
-
-        if grep -q "Plan 0\|Plan0" src/fs/fs.c 2>/dev/null; then
-          echo "✓ Plan 0 branding in fs.c"
-        else
-          echo "? Plan 0 branding not found in fs.c (informational)"
-        fi
-
-        if grep -q "Plan 0\|Plan0" src/ui/shell.c 2>/dev/null; then
-          echo "✓ Plan 0 branding in shell.c"
-        else
-          echo "? Plan 0 branding not found in shell.c (informational)"
-        fi
         
     - name: Check Makefile configuration
       run: |
