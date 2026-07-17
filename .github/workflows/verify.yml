@@ -1,16 +1,18 @@
 name: Plan 0 Verification
 
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main ]
+  workflow_run:
+    workflows: ["Build Plan 0"]
+    types:
+      - completed
+    branches: [main, master]
   workflow_dispatch:
 
 jobs:
   verify:
     runs-on: ubuntu-latest
     name: Verify Plan 0 Project
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     
     steps:
     - name: Checkout code
@@ -20,7 +22,16 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y gcc nasm binutils qemu-system-x86 grub-pc-bin xorriso
-        
+
+    - name: Download build artifacts
+      if: ${{ github.event_name == 'workflow_run' }}
+      uses: actions/download-artifact@v4
+      with:
+        name: kernel-bin
+        path: bin
+        run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Verify project structure
       run: |
         echo "=== Verifying Plan 0 Project Structure ==="
@@ -114,6 +125,7 @@ jobs:
         fi
         
     - name: Test compilation
+      if: ${{ github.event_name != 'workflow_run' }}
       run: |
         echo "=== Testing compilation ==="
         
@@ -139,6 +151,7 @@ jobs:
         fi
         
     - name: Create ISO test
+      if: ${{ github.event_name != 'workflow_run' }}
       run: |
         echo "=== Testing ISO creation ==="
         
