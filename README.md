@@ -1,7 +1,6 @@
 # Plan 0 v0.4.1
 
-A pure 64-bit operating system built from scratch.
-
+A pure clean slate 64-bit operating system built from scratch. Fighting legacy bloat from "backwards compatibility" rotting operating systems.
 ## License
 
 This project is licensed under the GNU Affero General Public License v3.0. See the [LICENSE](LICENSE) file for details.
