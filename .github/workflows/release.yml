@@ -4,12 +4,17 @@ on:
   push:
     tags:
     - 'v*'
+  workflow_run:
+    workflows: ["Plan 0 Verification"]
+    types:
+      - completed
 
 permissions:
   contents: write
 
 jobs:
   build:
+    if: ${{ github.event_name == 'push' || (github.event.workflow_run.conclusion == 'success' && startsWith(github.event.workflow_run.head_branch, 'v')) }}
     runs-on: ubuntu-latest
 
     steps:
@@ -164,6 +169,15 @@ jobs:
         # Link kernel
         ld -m elf_x86_64 -T linker/linker.ld -nostdlib -o bin/plan0.bin obj/boot.o obj/interrupts.o obj/context_switch.o obj/syscall.o obj/**/*.o
 
+    - name: Set release tag
+      id: tag
+      run: |
+        if [ "${{ github.event_name }}" = "workflow_run" ]; then
+          echo "tag=${{ github.event.workflow_run.head_branch }}" >> $GITHUB_OUTPUT
+        else
+          echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+        fi
+
     - name: Create bootable ISO
       run: |
         mkdir -p iso/boot/grub
@@ -179,13 +193,14 @@ jobs:
         }
         EOF
 
-        grub-mkrescue -o bin/plan0-${{ github.ref_name }}.iso iso
+        grub-mkrescue -o bin/plan0-${{ steps.tag.outputs.tag }}.iso iso
 
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
+        tag_name: ${{ steps.tag.outputs.tag }}
         files: |
-          bin/plan0-${{ github.ref_name }}.iso
+          bin/plan0-${{ steps.tag.outputs.tag }}.iso
           bin/plan0.bin
         generate_release_notes: true
       env:
