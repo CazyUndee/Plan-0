@@ -31,6 +31,7 @@
 #include "ui_command.h"
 #include "intent_dispatcher.h"
 #include "timer.h"
+#include "io.h"
 
 #define MAX_CMD_LEN 256
 
@@ -838,7 +839,7 @@ static void cmd_uptime(void) {
 static void cmd_reboot(void) {
     terminal_writestring_nl("  Rebooting...");
     /* QEMU / common reboot: write 0xFE to keyboard controller */
-    __asm__ volatile("outb %%al, $0x64" ::: "a"(0xFE));
+    outb(0x64, 0xFE);
     /* Fallback: infinite loop if that didn't work */
     while (1) {
         __asm__ volatile("hlt");
@@ -861,8 +862,7 @@ static void cmd_whoami(void) {
 }
 
 static void cmd_uname(void) {
-    terminal_writestring("  Plan 0 v0.4.0
-");
+    terminal_writestring("  Plan 0 v0.4.0");
 }
 
 static void cmd_env(void) {
