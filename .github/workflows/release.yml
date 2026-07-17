@@ -1,24 +1,29 @@
 name: Release
 
 on:
-  push:
-    tags:
-    - 'v*'
   workflow_run:
     workflows: ["Plan 0 Verification"]
     types:
       - completed
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Git tag to release (must already exist)"
+        required: true
 
 permissions:
   contents: write
 
 jobs:
   build:
-    if: ${{ github.event_name == 'push' || (github.event.workflow_run.conclusion == 'success' && startsWith(github.event.workflow_run.head_branch, 'v')) }}
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && startsWith(github.event.workflow_run.head_branch, 'v')) }}
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_branch || github.event.inputs.tag }}
 
     - name: Install dependencies
       run: |
@@ -174,8 +179,8 @@ jobs:
       run: |
         if [ "${{ github.event_name }}" = "workflow_run" ]; then
           echo "tag=${{ github.event.workflow_run.head_branch }}" >> $GITHUB_OUTPUT
-        else
-          echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+        elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          echo "tag=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
         fi
 
     - name: Create bootable ISO
