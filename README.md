@@ -1,58 +1,58 @@
-# OpenSYS OS v0.4.0
+# Plan 0 v0.4.0
 
-A pure 64-bit operating system built from scratch with the modern "Open" architecture.
+A pure 64-bit operating system built from scratch.
 
 ## License
 
-This project is licensed under the GNU General Public License v3.0. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the GNU Affero General Public License v3.0. See the [LICENSE](LICENSE) file for details.
 
 ## Features
 
-- **OpenKernel**: 64-bit kernel with direct long mode entry
-- **OpenMemory**: PMM with bitmap allocator, 4-level paging, kernel heap
-- **OpenFS**: NTFS-style filesystem with Master File Table (MFT) and attributes
-- **OpenPart**: GUID Partition Table driver with ATA disk access
-- **OpenInput**: USB HID keyboard driver framework
-- **OpenShell**: Natural language commands (not cryptic Unix names)
+- **Kernel**: 64-bit kernel with direct long mode entry
+- **Memory Manager**: PMM with bitmap allocator, 4-level paging, kernel heap
+- **FS**: NTFS-style filesystem with Master File Table (MFT) and attributes
+- **Partition Driver**: GUID Partition Table driver with ATA disk access
+- **Input**: USB HID keyboard driver framework
+- **Shell**: Natural language commands (not cryptic Unix names)
 
 ## Project Structure
 
 ```
 /
-├── boot/
-│   ├── boot.asm        # OpenKernel bootstrap
-│   ├── interrupts.asm  # 64-bit interrupt stubs
-│   ├── context_switch.asm # Task switching
-│   ├── syscall.asm     # System call interface
-│   └── usermode.asm    # User mode transitions
-├── src/
-│   ├── openkernel.c    # OpenKernel main
-│   ├── pmm.c          # OpenMemory PMM
-│   ├── paging.c       # 4-level paging
-│   ├── kheap.c        # OpenMemory heap
-│   ├── fs.c           # OpenFS implementation
-│   ├── gpt.c          # OpenPart driver
-│   ├── disk.c         # ATA disk driver
-│   ├── hid_keyboard.c # OpenInput USB HID
-│   └── shell.c        # OpenShell
-├── include/
-│   ├── stdint.h       # Standard integer types
-│   ├── stddef.h       # Standard definitions
-│   ├── pmm.h          # OpenMemory PMM interface
-│   ├── paging.h       # Paging structures
-│   ├── kheap.h        # OpenMemory heap
-│   ├── fs.h           # OpenFS structures
-│   ├── gpt.h          # OpenPart driver
-│   ├── disk.h         # ATA driver
-│   ├── usb.h          # USB host controller
-│   ├── uhci.h         # UHCI driver
-│   └── hid_keyboard.h # OpenInput USB HID
-├── linker/
-│   └── linker.ld      # OpenKernel linker script
-├── grub.cfg           # GRUB configuration
-├── Makefile           # Build system
-└── .github/workflows/
-    └── build.yml      # GitHub Actions CI
+â”œâ”€â”€ boot/
+â”‚   â”œâ”€â”€ boot.asm        # Kernel bootstrap
+â”‚   â”œâ”€â”€ interrupts.asm  # 64-bit interrupt stubs
+â”‚   â”œâ”€â”€ context_switch.asm # Task switching
+â”‚   â”œâ”€â”€ syscall.asm     # System call interface
+â”‚   â””â”€â”€ usermode.asm    # User mode transitions
+â”œâ”€â”€ src/
+â”‚   â”œâ”€â”€ kernel.c    # Kernel main
+â”‚   â”œâ”€â”€ pmm.c          # PMM
+â”‚   â”œâ”€â”€ paging.c       # 4-level paging
+â”‚   â”œâ”€â”€ kheap.c        # Kernel heap
+â”‚   â”œâ”€â”€ fs.c           # Filesystem implementation
+â”‚   â”œâ”€â”€ gpt.c          # Partition driver
+â”‚   â”œâ”€â”€ disk.c         # ATA disk driver
+â”‚   â”œâ”€â”€ hid_keyboard.c # Input USB HID
+â”‚   â””â”€â”€ shell.c        # Shell
+â”œâ”€â”€ include/
+â”‚   â”œâ”€â”€ stdint.h       # Standard integer types
+â”‚   â”œâ”€â”€ stddef.h       # Standard definitions
+â”‚   â”œâ”€â”€ pmm.h          # PMM interface
+â”‚   â”œâ”€â”€ paging.h       # Paging structures
+â”‚   â”œâ”€â”€ kheap.h        # Kernel heap
+â”‚   â”œâ”€â”€ fs.h           # Filesystem structures
+â”‚   â”œâ”€â”€ gpt.h          # Partition driver
+â”‚   â”œâ”€â”€ disk.h         # ATA driver
+â”‚   â”œâ”€â”€ usb.h          # USB host controller
+â”‚   â”œâ”€â”€ uhci.h         # UHCI driver
+â”‚   â””â”€â”€ hid_keyboard.h # Input USB HID
+â”œâ”€â”€ linker/
+â”‚   â””â”€â”€ linker.ld      # Kernel linker script
+â”œâ”€â”€ grub.cfg           # GRUB configuration
+â”œâ”€â”€ Makefile           # Build system
+â””â”€â”€ .github/workflows/
+    â””â”€â”€ build.yml      # GitHub Actions CI
 ```
 
 ## Installation
@@ -61,9 +61,9 @@ This project is licensed under the GNU General Public License v3.0. See the [LIC
 
 Download the latest release from GitHub:
 
-1. Go to [OpenSYS Releases](https://github.com/CazyUndee/OpenSYS/releases)
+1. Go to [Plan 0 Releases](https://github.com/CazyUndee/Plan0/releases)
 2. Download the latest release (e.g., v0.4.0)
-3. Choose either `os.iso` (bootable ISO) or `openkernel.bin` (raw kernel)
+3. Choose either `os.iso` (bootable ISO) or `kernel.bin` (raw kernel)
 
 ### Running with QEMU
 
@@ -74,17 +74,17 @@ qemu-system-x86_64 -cdrom os.iso -nographic -m 128
 
 **Option 2: Boot kernel directly**
 ```bash
-qemu-system-x86_64 -kernel openkernel.bin -nographic -m 128
+qemu-system-x86_64 -kernel kernel.bin -nographic -m 128
 ```
 
 **Option 3: Boot with serial output**
 ```bash
-qemu-system-x86_64 -kernel openkernel.bin -serial stdio -m 128
+qemu-system-x86_64 -kernel kernel.bin -serial stdio -m 128
 ```
 
 **Option 4: Boot with graphical output**
 ```bash
-qemu-system-x86_64 -kernel openkernel.bin -m 128
+qemu-system-x86_64 -kernel kernel.bin -m 128
 ```
 
 ### Running on Real Hardware
@@ -135,9 +135,9 @@ make run-iso   # Run in QEMU
 ## Boot Process
 
 1. **BIOS** -> GRUB bootloader
-2. **GRUB** -> Loads OpenKernel at 2MB, validates Multiboot2
+2. **GRUB** -> Loads kernel at 2MB, validates Multiboot1
 3. **boot.asm** -> Direct 64-bit long mode entry
-4. **openkernel.c** -> OpenMemory init, paging, heap, OpenFS, OpenShell
+4. **kernel.c** -> Memory init, paging, heap, filesystem, shell
 
 ## Memory Layout
 
@@ -148,7 +148,7 @@ make run-iso   # Run in QEMU
 0xFFFF800001000000 - ...                  Higher-half kernel code
 ```
 
-## OpenFS Filesystem
+## Filesystem
 
 NTFS-inspired design:
 - Master File Table (MFT) with attribute records
@@ -161,9 +161,8 @@ NTFS-inspired design:
 ## Changelog
 
 ### v0.4.0 (Current)
-- **Complete Open* naming scheme** implemented
 - **Removed all 32-bit code** - pure 64-bit architecture
-- **Enhanced OpenFS** with non-resident data support
+- **Enhanced filesystem** with non-resident data support
 - **Fixed GitHub Actions CI/CD** workflow
 - **Updated all file names** to remove 32-bit suffixes
 - **Improved build system** for 64-bit only
@@ -184,12 +183,11 @@ Natural language commands:
 
 ## CI/CD
 
-![Build](https://github.com/CazyUndee/OpenSYS/workflows/Build%20OpenSYS%20OS/badge.svg)
+![Build](https://github.com/CazyUndee/Plan0/workflows/Build%20Plan%200/badge.svg)
 
 Automated builds via GitHub Actions. All commits are verified against:
 - Project structure validation
-- Open* naming consistency
-- 64-bit build verification
+- Build verification
 - ISO creation and boot testing
 
 ## Next Steps
@@ -202,4 +200,6 @@ Automated builds via GitHub Actions. All commits are verified against:
 
 ## License
 
-Public domain.
+GNU Affero General Public License v3.0.
+
+

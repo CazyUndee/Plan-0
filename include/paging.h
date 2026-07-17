@@ -1,66 +1,49 @@
+/*
+ * paging.h - Paging Interface
+ *
+ * Copyright (C) 2026 CazyUndee
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #ifndef PAGING_H
 #define PAGING_H
 
 #include <stdint.h>
 #include <stddef.h>
 
-/*
- * Paging - Virtual Memory Management
- * 
- * x86 32-bit paging uses a two-level hierarchy:
- *   Page Directory (PD) - 1024 entries, each points to a Page Table
- *   Page Table (PT)    - 1024 entries, each points to a 4KB page
- * 
- * Each process has its own Page Directory.
- * Virtual address format: [31:22] PD index, [21:12] PT index, [11:0] offset
- */
+// Paging statistics
+typedef struct {
+    uint64_t total_pages;
+    uint64_t free_pages;
+    uint64_t kernel_heap_pages;
+    uint64_t kernel_heap_used_pages;
+    uint32_t page_size;
+    uint8_t paging_level;
+} paging_stats_t;
 
-/* Page size constants */
-#define PAGE_SIZE           4096
-#define PAGE_MASK           0xFFFFF000
-#define PAGE_OFFSET_MASK    0x00000FFF
-
-/* Entries per table (1024 for 32-bit) */
-#define PD_ENTRIES          1024
-#define PT_ENTRIES          1024
-
-/* Page directory/table entry flags */
-#define PTE_PRESENT         0x001   /* Page is present in memory */
-#define PTE_WRITABLE        0x002   /* Page is writable */
-#define PTE_USER            0x004   /* User-mode accessible */
-#define PTE_PWT             0x008   /* Write-through caching */
-#define PTE_PCD             0x010   /* Cache disabled */
-#define PTE_ACCESSED        0x020   /* Page has been accessed */
-#define PTE_DIRTY           0x040   /* Page has been written to */
-#define PTE_PS              0x080   /* Page size (4MB if set) */
-#define PTE_GLOBAL          0x100   /* Global page (not flushed on CR3 reload) */
-
-/* Macros to extract indices from virtual address */
-#define PD_INDEX(vaddr)     (((uint32_t)(vaddr) >> 22) & 0x3FF)
-#define PT_INDEX(vaddr)     (((uint32_t)(vaddr) >> 12) & 0x3FF)
-
-/* Page table entry type */
-typedef uint32_t pte_t;
-
-/* Initialize paging */
+// Core API
 void paging_init(void);
+void paging_get_stats(paging_stats_t* stats);
 
-/* Get current page directory physical address */
-uint32_t paging_get_cr3(void);
+// Page management
+void* alloc_pages(size_t pages);
+void free_pages(void* ptr, size_t pages);
 
-/* Map a virtual page to a physical page */
-void paging_map(uint32_t vaddr, uint32_t paddr, uint32_t flags);
+// Memory mapping
+int map_physical(uint64_t physical, void* virtual, size_t size, uint32_t flags);
+int unmap_physical(void* virtual, size_t size);
+void paging_map_huge(uint64_t vaddr, uint64_t paddr, uint64_t flags);
 
-/* Unmap a virtual page */
-void paging_unmap(uint32_t vaddr);
-
-/* Get physical address for a virtual address */
-uint32_t paging_get_physical(uint32_t vaddr);
-
-/* Allocate and map a page at virtual address */
-void* paging_alloc(uint32_t vaddr, uint32_t flags);
-
-/* Identity map a range */
-void paging_identity_map(uint32_t start, uint32_t end, uint32_t flags);
-
-#endif
+#endif // PAGING_H

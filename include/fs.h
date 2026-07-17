@@ -5,7 +5,7 @@
 #include <stddef.h>
 
 /*
- * OpenFS - A simplified NTFS-style filesystem
+ * FS - A simplified NTFS-style filesystem
  * 
  * Structure:
  *   - Boot sector (sector 0)
@@ -23,7 +23,7 @@
 #define FS_CLUSTER_SIZE     4096
 #define FS_SECTORS_PER_CLUSTER  (FS_CLUSTER_SIZE / FS_SECTOR_SIZE)
 
-#define FS_MAGIC            0x4F50464E  /* "OPFN" - OpenFS Native */
+#define FS_MAGIC            0x4E414C50  /* "PLAN" - Plan 0 Native */
 #define FS_VERSION          0x00010000  /* v1.0 */
 
 #define MFT_ENTRY_SIZE      4096

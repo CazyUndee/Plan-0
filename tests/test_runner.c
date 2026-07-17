@@ -1,5 +1,5 @@
 /*
- * test_runner.c - Main Test Runner for OpenSYS OS
+ * test_runner.c - Main Test Runner for Plan 0
  *
  * Copyright (C) 2026 CazyUndee
  */
@@ -74,7 +74,7 @@ int run_all_tests(int verbose) {
     
     printf("\n");
     printf("========================================\n");
-    printf("OpenSYS OS Test Runner\n");
+    printf("Plan 0 Test Runner\n");
     printf("========================================\n");
     
     for (int i = 0; i < num_test_suites; i++) {
@@ -125,12 +125,12 @@ int run_test_suite(const char* name, int verbose) {
         return 1;
     }
     
-    printf("\n");
-    printf("========================================\n");
-    printf("OpenSYS OS Test Runner\n");
-    printf("========================================\n");
-    
-    test_suite_t* suite = suite_info->create_suite();
+printf("\n");
+printf("========================================\n");
+printf("Plan 0 Test Runner\n");
+printf("========================================\n");
+
+test_suite_t* suite = suite_info->create_suite();
     if (suite) {
         test_suite_run(suite);
         

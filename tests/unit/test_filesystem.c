@@ -191,10 +191,10 @@ void test_magic_number_validation(void) {
     printf("Testing magic number validation...\n");
     
     // Test magic number as bytes
-    uint8_t magic_bytes[4] = {0x4F, 0x50, 0x46, 0x4E}; // "OPFN"
+    uint8_t magic_bytes[4] = {0x50, 0x4C, 0x41, 0x4E}; // "PLAN"
     uint32_t magic_value = *(uint32_t*)magic_bytes;
     
-    ASSERT_EQ(magic_value, FS_MAGIC, "Magic number should match 'OPFN'");
+    ASSERT_EQ(magic_value, FS_MAGIC, "Magic number should match 'PLAN'");
     
     // Test that magic number is reasonable (not zero or common patterns)
     ASSERT(FS_MAGIC != 0x00000000, "Magic number should not be zero");

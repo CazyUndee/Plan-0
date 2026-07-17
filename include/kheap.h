@@ -1,58 +1,48 @@
+/*
+ * kheap.h - Kernel Heap Interface
+ *
+ * Copyright (C) 2026 CazyUndee
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #ifndef KHEAP_H
 #define KHEAP_H
 
 #include <stdint.h>
 #include <stddef.h>
 
-/*
- * Kernel Heap Allocator
- * 
- * Simple linked-list allocator for dynamic memory allocation.
- * Uses a first-fit algorithm with block splitting.
- * 
- * Heap structure:
- *   [block_header][data][block_header][data]...
- * 
- * Block header:
- *   - size: size of data area (not including header)
- *   - flags: allocated/free flag
- *   - next: pointer to next block
- */
+// Heap statistics
+typedef struct {
+    uint64_t total_size;
+    uint64_t used_size;
+    uint64_t free_blocks;
+    uint64_t largest_free;
+    uint32_t block_count;
+    uint32_t allocated_blocks;
+} kheap_stats_t;
 
-/* Block flags */
-#define KHEAP_FREE      0x00
-#define KHEAP_ALLOCATED 0x01
-#define KHEAP_MAGIC     0xBEEF
+// Core API
+void kheap_init(uint64_t start, uint64_t size);
+void kheap_get_stats(kheap_stats_t* stats);
 
-/* Block header */
-typedef struct kheap_block {
-    struct kheap_block* next;
-    uint32_t size;
-    uint16_t flags;
-    uint16_t magic;
-} kheap_block_t;
-
-/* Initialize heap at a virtual address with given size */
-void kheap_init(uint32_t heap_start, uint32_t heap_size);
-
-/* Allocate memory (returns virtual address) */
+// Memory allocation
 void* kmalloc(size_t size);
-
-/* Allocate aligned memory */
-void* kmalloc_aligned(size_t size, uint32_t alignment);
-
-/* Free memory */
 void kfree(void* ptr);
 
-/* Reallocate memory */
-void* krealloc(void* ptr, size_t new_size);
-
-/* Get heap statistics */
-size_t kheap_get_used(void);
-size_t kheap_get_free(void);
-size_t kheap_get_total(void);
-
-/* Debug: print heap state */
+// Heap debugging
 void kheap_dump(void);
+void kheap_validate(void);
 
-#endif
+#endif // KHEAP_H

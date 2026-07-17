@@ -1,4 +1,4 @@
-# OpenSYS OS Test Suite Makefile
+# Plan 0 Test Suite Makefile
 #
 # Copyright (C) 2026 CazyUndee
 
@@ -110,7 +110,7 @@ list-tests: $(TEST_RUNNER)
 
 # Help target
 help:
-	@echo "OpenSYS OS Test Suite Makefile"
+	@echo "Plan 0 Test Suite Makefile"
 	@echo ""
 	@echo "Available targets:"
 	@echo "  all              - Build test runner (default)"
@@ -140,7 +140,7 @@ clean:
 
 # Show build configuration
 info:
-	@echo "OpenSYS OS Test Suite Configuration"
+	@echo "Plan 0 Test Suite Configuration"
 	@echo "CC: $(CC)"
 	@echo "CFLAGS: $(CFLAGS)"
 	@echo "Test runner: $(TEST_RUNNER)"
@@ -150,7 +150,7 @@ info:
 # Dependencies (simple approach for now)
 $(OBJDIR)/test_framework.o: test_framework.c test_framework.h
 $(OBJDIR)/test_runner.o: test_runner.c test_framework.h
-$(OBJDIR)/unit/test_memory.o: $(UNITDIR)/test_memory.c test_framework.h ../include/openmemory.h
+$(OBJDIR)/unit/test_memory.o: $(UNITDIR)/test_memory.c test_framework.h ../include/memory.h
 $(OBJDIR)/unit/test_filesystem.o: $(UNITDIR)/test_filesystem.c test_framework.h ../include/fs.h
 $(OBJDIR)/unit/test_process.o: $(UNITDIR)/test_process.c test_framework.h ../include/process.h
-$(OBJDIR)/integration/test_kernel_integration.o: $(INTEGRATIONDIR)/test_kernel_integration.c test_framework.h ../include/openmemory.h ../include/process.h ../include/fs.h
+$(OBJDIR)/integration/test_kernel_integration.o: $(INTEGRATIONDIR)/test_kernel_integration.c test_framework.h ../include/memory.h ../include/process.h ../include/fs.h

@@ -49,13 +49,13 @@ def embed_binary(input_path, output_base):
         f.write(' * Auto-generated from {}\n'.format(os.path.basename(input_path)))
         f.write(' */\n\n')
         f.write('#include <stdint.h>\n')
-        f.write('#include "../include/{}.h"\n\n'.format(var_name))
+        f.write('#include "{}.h"\n\n'.format(var_name))
         f.write('const unsigned char {}_data[] = {{\n'.format(var_name))
 
         for i in range(0, size, 16):
             chunk = data[i:i+16]
             hex_vals = ', '.join('0x{:02X}'.format(b) for b in chunk)
-            f.write('    {}\n'.format(hex_vals))
+            f.write('    {},\n'.format(hex_vals))
 
         if size == 0:
             f.write('    0x00\n')

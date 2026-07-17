@@ -1,33 +1,38 @@
-; OpenSYS OS v0.4.0 - OpenKernel Bootstrap
+; Plan 0 v0.4.0 - Bootstrap
 ; 
 ; Copyright (C) 2026 CazyUndee
 ; 
 ; This program is free software: you can redistribute it and/or modify
-; it under the terms of the GNU General Public License as published by
+; it under the terms of the GNU Affero General Public License as published by
 ; the Free Software Foundation, either version 3 of the License, or
 ; (at your option) any later version.
 ; 
 ; This program is distributed in the hope that it will be useful,
 ; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-; GNU General Public License for more details.
+; GNU Affero General Public License for more details.
 ; 
-; You should have received a copy of the GNU General Public License
+; You should have received a copy of the GNU Affero General Public License
 ; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-; boot.asm - OpenKernel 64-bit Long Mode Bootstrap
+; boot.asm - Plan 0 64-bit Long Mode Bootstrap
 ;
 ; GRUB loads us in 32-bit protected mode. We need to:
 ; 1. Setup identity-mapped paging
 ; 2. Enable long mode
-; 3. Jump to 64-bit OpenKernel
+; 3. Jump to 64-bit Plan 0 kernel
 
 section .multiboot
 align 4
 mb_header:
-    dd 0x1BADB002              ; Multiboot magic number
-    dd 0                      ; Flags (no special features)
-    dd -(0x1BADB002 + 0)      ; Checksum
+    dd 0x1BADB002              ; 0: magic
+    dd 1 << 16                 ; 4: flags (a.out kludge)
+    dd -(0x1BADB002 + (1 << 16)) ; 8: checksum
+    dd mb_header               ; 12: header_addr
+    dd 0x100000                ; 16: load_addr
+    dd 0                       ; 20: load_end_addr (0 = entire file)
+    dd 0                       ; 24: bss_end_addr (0 = no extra BSS)
+    dd _start                  ; 28: entry_addr
 mb_header_end:
 
 section .bss
@@ -36,6 +41,7 @@ stack_bottom:
     resb 65536              ; 64KB stack
 stack_top:
 
+align 4096
 pml4:
     resb 4096
 pdpt:
@@ -66,7 +72,8 @@ _start:
     ; Clear direction flag
     cld
 
-    ; Save multiboot info
+    ; Save multiboot info FIRST (before any register modifications!)
+    ; EBX = multiboot info pointer, EAX = magic (0x2BADB002)
     push ebx
     push eax
 
@@ -125,9 +132,13 @@ setup_page_tables:
     or eax, 0b11
     mov [pdpt], eax
 
-    ; Map PD[0] -> 2MB huge page at 0x00000000
+    ; Map PD[0] -> 2MB huge page at 0x00000000 (low 2MB)
     mov eax, 0b10000011
     mov [pd], eax
+
+    ; Map PD[1] -> 2MB huge page at 0x00200000 (kernel code/data)
+    mov eax, 0x00200000 | 0b10000011
+    mov [pd + 8], eax
 
     ret
 
@@ -156,6 +167,17 @@ enable_paging:
 
 bits 64
 long_mode_start:
+    ; Retrieve multiboot info from stack
+    ; Stack layout: [rsp]=magic (4B), [rsp+4]=mbi (4B)
+    xor rdi, rdi
+    mov edi, [rsp]         ; rdi = magic (zero-extended from 32-bit push)
+    xor rsi, rsi
+    mov esi, [rsp + 4]     ; rsi = multiboot info pointer
+
+    ; Set up clean 64-bit stack
+    mov rsp, stack_top
+    mov rbp, 0
+
     ; Load 64-bit data segment selectors
     mov ax, gdt64.data
     mov ds, ax
@@ -164,13 +186,7 @@ long_mode_start:
     mov gs, ax
     mov ss, ax
 
-    ; Set up 64-bit stack
-    mov rsp, stack_top
-    mov rbp, 0
-
-    ; Call kernel main (multiboot magic in rdi, mbi in rsi)
-    pop rdi
-    pop rsi
+    ; Call kernel main (rdi = magic, rsi = mbi)
     call kernel_main
 
     ; Halt if kernel returns

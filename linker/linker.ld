@@ -2,16 +2,13 @@ ENTRY(_start)
 
 SECTIONS
 {
-    /* Multiboot header must be at the very beginning (offset 0) */
-    . = 0;
+    /* Multiboot header + kernel at 1MB */
+    . = 0x100000;
     
     .multiboot :
     {
         *(.multiboot)
     }
-
-    /* Load kernel at 2MB (leaves room for bootloader) */
-    . = 0x200000;
 
     /* Boot code */
     .boot :

@@ -103,4 +103,7 @@ pid_t process_create_user(const char* name, const void* elf_data, size_t elf_siz
 /* Get current process's VM space */
 vm_space_t* process_current_vm(void);
 
+/* Get number of active processes */
+int process_get_count(void);
+
 #endif

@@ -41,7 +41,7 @@ void write(const char* s) {
 void _start(void) {
     write("\n");
     write("  ==================================\n");
-    write("  |    OpenSYS User Mode Test     |\n");
+write(" | Plan 0 User Mode Test |\n");
     write("  |        Hello from PID 1        |\n");
     write("  ==================================\n");
     write("\n");

@@ -5,7 +5,7 @@
  */
 
 #include "../test_framework.h"
-#include "../../include/openmemory.h"
+#include "../../include/memory.h"
 #include "../../include/process.h"
 #include "../../include/fs.h"
 #include <stdlib.h>
@@ -290,9 +290,9 @@ void test_component_lifecycle_simulation(void) {
     printf("  Simulating kernel startup...\n");
     
     // 1. Initialize memory management
-    openmemory_stats_t mem_stats;
+    memory_stats_t mem_stats;
     memset(&mem_stats, 0, sizeof(mem_stats));
-    openmemory_get_stats(&mem_stats);
+    memory_get_stats(&mem_stats);
     printf("  Memory stats obtained\n");
     
     // 2. Create initial processes

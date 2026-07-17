@@ -1,27 +1,28 @@
-# OpenSYS OS v0.4.0 - Build System
+# Plan 0 v0.4.0 - Build System
 # 
 # Copyright (C) 2026 CazyUndee
 # 
 # This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
+# it under the terms of the GNU Affero General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 # 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# GNU Affero General Public License for more details.
 # 
-# You should have received a copy of the GNU General Public License
+# You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-# OpenSYS OS Makefile
+# Plan 0 Makefile
 # 64-bit only build
 
 # Tools
-CC = gcc
-LD = ld
+CC = x86_64-elf-gcc
+LD = x86_64-elf-ld
 NASM = nasm
+OBJCOPY = x86_64-elf-objcopy
 
 # Flags
 CFLAGS = -m64 -ffreestanding -O0 -g -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin -Iinclude -mcmodel=large
@@ -29,17 +30,18 @@ LDFLAGS = -m elf_x86_64 -T linker/linker.ld -nostdlib
 NASMFLAGS = -f elf64
 
 # Targets
-KERNEL = openkernel
+KERNEL = plan0
 # Source files organized by directory
-KERNEL_SRCS = kernel/openkernel.c kernel/opensys.c kernel/opensystem_calls.c kernel/openelf.c kernel/openelf_loader.c kernel/openstate_graph.c kernel/openintent_dispatcher.c kernel/openswitch.c
-MEMORY_SRCS = memory/openmemory.c memory/openkheap.c memory/openpaging.c
-FS_SRCS = fs/openfs.c fs/openvfs.c fs/openramfs.c
-ARCH_SRCS = arch/opengdt.c arch/opengdt_flush.asm arch/openidt.c arch/opentss.c arch/openpic.c arch/opentimer.c arch/opencpu_exceptions.c arch/openinterrupt_handlers.c
-DRIVER_SRCS = drivers/opendisk.c drivers/openvga.c drivers/openhid.c drivers/openinput.c drivers/openusb_host.c drivers/openserial.c drivers/openio.c drivers/openpart.c drivers/openpartition_table.c drivers/openrtc.c
-PROCESS_SRCS = process/openprocess.c process/openscheduler.c process/openprograms.c process/openvm.c
-UI_SRCS = ui/openshell.c ui/openui_command.c ui/openui_state.c
+KERNEL_SRCS = kernel/kernel.c kernel/sys.c kernel/elf.c kernel/state_graph.c kernel/intent_dispatcher.c kernel/intent_schema.c kernel/switch.c
+MEMORY_SRCS = memory/memory.c memory/kheap.c memory/paging.c
+FS_SRCS = fs/fs.c fs/vfs.c fs/ramfs.c
+ARCH_SRCS = arch/gdt.c arch/gdt_flush.asm arch/idt.c arch/tss.c arch/pic.c arch/timer.c arch/interrupt_handlers.c
+DRIVER_SRCS = drivers/disk.c drivers/vga.c drivers/hid.c drivers/input.c drivers/pci.c drivers/usb_host.c drivers/serial.c drivers/io.c drivers/part.c drivers/partition_table.c drivers/rtc.c drivers/ehci.c drivers/net.c
+PROCESS_SRCS = process/process.c process/scheduler.c process/programs.c process/vm.c
+NET_SRCS = net/ip.c net/icmp.c net/tcp.c
+UI_SRCS = ui/shell.c ui/ui_command.c ui/ui_state.c
 
-SRCS = $(KERNEL_SRCS) $(MEMORY_SRCS) $(FS_SRCS) $(ARCH_SRCS) $(DRIVER_SRCS) $(PROCESS_SRCS) $(UI_SRCS)
+SRCS = $(KERNEL_SRCS) $(MEMORY_SRCS) $(FS_SRCS) $(ARCH_SRCS) $(DRIVER_SRCS) $(PROCESS_SRCS) $(UI_SRCS) $(NET_SRCS)
 
 # Directories
 SRCDIR = src
@@ -50,25 +52,29 @@ BINDIR = bin
 # Files
 BOOT_ASM = $(BOOTDIR)/boot.asm
 SOURCES = $(SRCS:%=$(SRCDIR)/%)
-OBJECTS = $(SRCS:%.c=$(OBJDIR)/%.o)
+C_OBJECTS = $(patsubst %.c,$(OBJDIR)/%.o,$(filter %.c,$(SRCS)))
+ASM_OBJECTS = $(patsubst %.asm,$(OBJDIR)/%.o,$(filter %.asm,$(SRCS)))
+OBJECTS = $(C_OBJECTS) $(ASM_OBJECTS)
 BOOT_OBJ = $(OBJDIR)/boot.o
 ISR_OBJ = $(OBJDIR)/interrupts.o
 CTXTSW_OBJ = $(OBJDIR)/context_switch.o
 SYSCALL_OBJ = $(OBJDIR)/syscall_asm.o
-EXTRA_ASM_OBJS = $(ISR_OBJ) $(CTXTSW_OBJ) $(SYSCALL_OBJ)
+PCID_OBJ = $(OBJDIR)/switch_to_pcid.o
+EXTRA_ASM_OBJS = $(ISR_OBJ) $(CTXTSW_OBJ) $(SYSCALL_OBJ) $(PCID_OBJ)
 
 TARGET = $(BINDIR)/$(KERNEL).bin
 ISO = $(BINDIR)/os.iso
 
 # Phony targets
-.PHONY: all clean run iso test check user_bin
+.PHONY: all clean run run-iso run-usb run-wsl run-wsl-iso run-wsl-usb run-wsl-gui iso test check smoke-test smoke-test-wsl
 
 # Default target
-all: $(TARGET)
+all: user_bin $(TARGET)
 
-# User binary
+# User binary: embed into src/process/programs.c and include/user_bin.h
 user_bin: user/init.bin
-	python3 tools/embed_binary.py user/init.bin src/user_bin
+	python tools/embed_binary.py user/init.bin include/user_bin
+	python tools/embed_binary.py user/init.bin src/process/programs
 
 # Create directories
 $(OBJDIR):
@@ -91,6 +97,9 @@ $(CTXTSW_OBJ): $(BOOTDIR)/context_switch.asm | $(OBJDIR)
 $(SYSCALL_OBJ): $(BOOTDIR)/syscall.asm | $(OBJDIR)
 	$(NASM) $(NASMFLAGS) -o $@ $<
 
+$(PCID_OBJ): $(BOOTDIR)/switch_to_pcid.asm | $(OBJDIR)
+	$(NASM) $(NASMFLAGS) -o $@ $<
+
 # C objects - handle subdirectories
 $(OBJDIR)/%.o: $(SRCDIR)/%.c | $(OBJDIR)
 	@mkdir -p $(dir $@)
@@ -108,7 +117,7 @@ $(TARGET): $(BOOT_OBJ) $(EXTRA_ASM_OBJS) $(OBJECTS) | $(BINDIR)
 	@echo "Build complete: $@"
 	@echo "========================================"
 
-# Create ISO
+# Create ISO (requires grub-mkrescue)
 iso: $(TARGET)
 	@mkdir -p iso/boot/grub
 	@cp $(TARGET) iso/boot/kernel
@@ -116,18 +125,46 @@ iso: $(TARGET)
 	@grub-mkrescue -o $(ISO) iso
 	@echo "ISO creation complete: $(ISO)"
 
+# Create ISO using Python/pycdlib (no grub-mkrescue needed)
+pyiso:
+	@python tools/create_hybrid_iso.py
+
 # Run in QEMU
 run: $(TARGET)
 	@echo "Starting QEMU..."
 	qemu-system-x86_64 -kernel $(TARGET) -serial stdio -m 128
 
-run-iso: iso
+run-iso: pyiso
 	qemu-system-x86_64 -cdrom $(ISO) -serial stdio -m 128
 
-# Test basic boot
-test: $(TARGET)
+run-usb: pyiso
+	qemu-system-x86_64 -drive file=$(ISO),if=ide,format=raw -serial stdio -m 128
+
+# WSL QEMU targets (use -nographic for headless operation)
+run-wsl: $(TARGET)
+	@echo "Starting QEMU (WSL mode)..."
+	qemu-system-x86_64 -kernel $(TARGET) -nographic -serial stdio -m 128
+
+run-wsl-iso: pyiso
+	qemu-system-x86_64 -cdrom $(ISO) -nographic -serial stdio -m 128
+
+run-wsl-usb: pyiso
+	qemu-system-x86_64 -drive file=$(ISO),if=ide,format=raw -nographic -serial stdio -m 128
+
+# WSL with display (requires X server on Windows, e.g. VcXsrv)
+run-wsl-gui: $(TARGET)
+	@echo "Starting QEMU (WSL+GUI mode)..."
+	qemu-system-x86_64 -kernel $(TARGET) -serial stdio -m 128
+
+# Basic boot smoke test
+smoke-test: $(TARGET)
 	@echo "Running basic boot test..."
-	@timeout 5s qemu-system-x86_64 -kernel $(TARGET) -display none -serial stdio -m 128 2>&1 | grep -q "OpenSYS" && echo "PASS" || echo "FAIL"
+	@timeout 5s qemu-system-x86_64 -kernel $(TARGET) -display none -serial stdio -m 128 2>&1 | grep -q "Plan 0" && echo "PASS" || echo "FAIL"
+
+# WSL smoke test
+smoke-test-wsl: $(TARGET)
+	@echo "Running basic boot test (WSL)..."
+	@timeout 10s qemu-system-x86_64 -kernel $(TARGET) -display none -serial stdio -m 128 2>&1 | grep -q "Plan 0" && echo "PASS" || echo "FAIL"
 
 # Check dependencies
 check:
@@ -145,11 +182,11 @@ user/init.elf: user/init.o user/user.ld
 	$(LD) -T user/user.ld -nostdlib -o $@ $<
 
 user/init.bin: user/init.elf
-	objcopy -O binary $< $@
+	$(OBJCOPY) -O binary $< $@
 
 # Test targets
 test:
-	@echo "Running OpenSYS OS test suite..."
+	@echo "Running Plan 0 test suite..."
 	@$(MAKE) -C tests test
 
 test-unit:
@@ -179,7 +216,7 @@ clean-all: clean test-clean
 
 # Show build configuration
 info:
-	@echo "OpenSYS OS Build Configuration (64-bit)"
+	@echo "Plan 0 Build Configuration (64-bit)"
 	@echo "CC: $(CC)"
 	@echo "LD: $(LD)"
 	@echo "CFLAGS: $(CFLAGS)"

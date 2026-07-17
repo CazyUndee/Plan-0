@@ -1,25 +1,25 @@
-# OpenSYS OS Test Suite
+# Plan 0 Test Suite
 
-This directory contains the comprehensive test suite for the OpenSYS operating system kernel.
+This directory contains the comprehensive test suite for the Plan 0 operating system kernel.
 
 ## Directory Structure
 
 ```
 tests/
-├── README.md                 # This file
-├── Makefile                 # Test suite build system
-├── test_framework.h         # Test framework header
-├── test_framework.c         # Test framework implementation
-├── test_runner.c           # Main test runner
-├── unit/                   # Unit tests
-│   ├── test_memory.c       # Memory management tests
-│   ├── test_filesystem.c   # Filesystem tests
-│   └── test_process.c      # Process management tests
-├── integration/            # Integration tests
-│   └── test_kernel_integration.c  # Kernel component integration tests
-└── mocks/                  # Mock hardware drivers
-    ├── mock_hardware.h     # Mock hardware interface
-    └── mock_hardware.c     # Mock hardware implementation
+â”œâ”€â”€ README.md                 # This file
+â”œâ”€â”€ Makefile                 # Test suite build system
+â”œâ”€â”€ test_framework.h         # Test framework header
+â”œâ”€â”€ test_framework.c         # Test framework implementation
+â”œâ”€â”€ test_runner.c           # Main test runner
+â”œâ”€â”€ unit/                   # Unit tests
+â”‚   â”œâ”€â”€ test_memory.c       # Memory management tests
+â”‚   â”œâ”€â”€ test_filesystem.c   # Filesystem tests
+â”‚   â””â”€â”€ test_process.c      # Process management tests
+â”œâ”€â”€ integration/            # Integration tests
+â”‚   â””â”€â”€ test_kernel_integration.c  # Kernel component integration tests
+â””â”€â”€ mocks/                  # Mock hardware drivers
+    â”œâ”€â”€ mock_hardware.h     # Mock hardware interface
+    â””â”€â”€ mock_hardware.c     # Mock hardware implementation
 ```
 
 ## Test Categories
@@ -176,7 +176,7 @@ PASS: memory_stats
 
 === Test Suite Summary: Memory Management ===
 Total: 9, Passed: 9, Failed: 0
-✓ All tests passed!
+âœ“ All tests passed!
 
 ========================================
 Overall Test Results
@@ -185,7 +185,7 @@ Test suites run: 4
 Total tests: 47
 Passed: 47
 Failed: 0
-✓ All tests passed!
+âœ“ All tests passed!
 ```
 
 ## Writing New Tests
@@ -350,4 +350,4 @@ When adding new tests:
 
 ## License
 
-This test suite is licensed under the same terms as the OpenSYS OS project (GPL v3.0).
+This test suite is licensed under the same terms as the Plan 0 project (GNU Affero General Public License v3.0).

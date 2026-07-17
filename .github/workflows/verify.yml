@@ -1,4 +1,4 @@
-name: OpenKernel Verification
+name: Plan 0 Verification
 
 on:
   push:
@@ -10,7 +10,7 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    name: Verify OpenKernel Project
+    name: Verify Plan 0 Project
     
     steps:
     - name: Checkout code
@@ -23,17 +23,17 @@ jobs:
         
     - name: Verify project structure
       run: |
-        echo "=== Verifying OpenKernel Project Structure ==="
+        echo "=== Verifying Plan 0 Project Structure ==="
 
         # Check core files exist
         required_files=(
-          "src/kernel/openkernel.c"
-          "src/memory/openmemory.c"
-          "src/memory/openpaging.c"
-          "src/memory/openkheap.c"
-          "src/fs/openfs.c"
-          "src/ui/openshell.c"
-          "src/drivers/openpart.c"
+          "src/kernel/kernel.c"
+          "src/memory/memory.c"
+          "src/memory/paging.c"
+          "src/memory/kheap.c"
+          "src/fs/fs.c"
+          "src/ui/shell.c"
+          "src/drivers/part.c"
           "boot/boot.asm"
           "boot/interrupts.asm"
           "Makefile"
@@ -87,37 +87,37 @@ jobs:
           exit 1
         fi
         
-    - name: Verify Open* naming consistency
+    - name: Verify naming consistency
       run: |
-        echo "=== Verifying Open* naming consistency ==="
+        echo "=== Verifying naming consistency ==="
 
-        # Check Open* branding in key files (informational only)
-        if grep -q "OpenKernel\|OpenMemory\|OpenFS\|OpenPart\|OpenInput\|OpenShell" src/kernel/openkernel.c 2>/dev/null; then
-          echo "✓ Open* naming found in openkernel.c"
+        # Check branding in key files (informational)
+        if grep -q "Plan 0\|Plan0" src/kernel/kernel.c 2>/dev/null; then
+          echo "✓ Plan 0 naming found in kernel.c"
         else
-          echo "? Open* naming not found in openkernel.c (informational)"
+          echo "? Plan 0 naming not found in kernel.c (informational)"
         fi
 
-        if grep -q "OpenFS" src/fs/openfs.c 2>/dev/null; then
-          echo "✓ OpenFS branding in openfs.c"
+        if grep -q "Plan 0\|Plan0" src/fs/fs.c 2>/dev/null; then
+          echo "✓ Plan 0 branding in fs.c"
         else
-          echo "? OpenFS branding not found in openfs.c (informational)"
+          echo "? Plan 0 branding not found in fs.c (informational)"
         fi
 
-        if grep -q "OpenShell" src/ui/openshell.c 2>/dev/null; then
-          echo "✓ OpenShell branding in openshell.c"
+        if grep -q "Plan 0\|Plan0" src/ui/shell.c 2>/dev/null; then
+          echo "✓ Plan 0 branding in shell.c"
         else
-          echo "? OpenShell branding not found in openshell.c (informational)"
+          echo "? Plan 0 branding not found in shell.c (informational)"
         fi
         
     - name: Check Makefile configuration
       run: |
         echo "=== Verifying Makefile ==="
 
-        if grep -q "KERNEL = openkernel" Makefile; then
-          echo "✓ OpenKernel target configured"
+        if grep -q "KERNEL = plan0" Makefile; then
+          echo "✓ Plan 0 target configured"
         else
-          echo "✗ OpenKernel target not found"
+          echo "✗ Plan 0 target not found"
           exit 1
         fi
 
@@ -143,16 +143,16 @@ jobs:
         make check
         
         # Try to build
-        echo "Building OpenKernel..."
+        echo "Building Plan 0..."
         if make all; then
           echo "✅ Build successful"
           
           # Check if kernel binary exists
-          if [ -f "bin/openkernel.bin" ]; then
-            echo "✅ OpenKernel binary created"
-            ls -la bin/openkernel.bin
+          if [ -f "bin/plan0.bin" ]; then
+            echo "✅ Plan 0 binary created"
+            ls -la bin/plan0.bin
           else
-            echo "✗ OpenKernel binary not found"
+            echo "✗ Plan 0 binary not found"
             exit 1
           fi
         else
@@ -184,12 +184,12 @@ jobs:
         echo "=== Running basic boot test ==="
 
         # Quick QEMU boot test (timeout after 10 seconds)
-        timeout 10s qemu-system-x86_64 -kernel bin/openkernel.bin -display none -serial stdio -m 128M 2>&1 | tee boot_test.log || true
+        timeout 10s qemu-system-x86_64 -kernel bin/plan0.bin -display none -serial stdio -m 128M 2>&1 | tee boot_test.log || true
 
-        if grep -qi "opensys\|openkernel" boot_test.log; then
-          echo "✅ OpenSYS/OpenKernel branding detected in boot"
+        if grep -qi "plan.0\|plan0" boot_test.log; then
+          echo "✅ Plan 0 branding detected in boot"
         else
-          echo "? OpenSYS/OpenKernel branding not detected in boot (informational)"
+          echo "? Plan 0 branding not detected in boot (informational)"
         fi
 
         if grep -qi "multiboot" boot_test.log; then
@@ -206,10 +206,10 @@ jobs:
         echo "=== Verification Summary ==="
         echo "✅ Project structure verified"
         echo "✅ No 32-bit remnants"
-        echo "✅ Open* naming consistent"
+        echo "✅ Naming consistent"
         echo "✅ Build system functional"
         echo "✅ Compilation successful"
         echo "✅ ISO creation working"
         echo "✅ Basic boot test passed"
         echo ""
-        echo "🎉 OpenKernel project is ready for main branch!"
+        echo "Plan 0 project is ready for main branch!"

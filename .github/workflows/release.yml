@@ -31,162 +31,162 @@ jobs:
         nasm -f elf64 boot/syscall.asm -o obj/syscall.o
 
         # Build architecture files
-        nasm -f elf64 src/arch/opengdt_flush.asm -o obj/arch/opengdt_flush.o
+        nasm -f elf64 src/arch/gdt_flush.asm -o obj/arch/gdt_flush.o
 
         # Build C sources by directory
-        gcc -m64 -c src/kernel/openkernel.c -o obj/kernel/openkernel.o \
+        gcc -m64 -c src/kernel/kernel.c -o obj/kernel/kernel.o \
           -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
           -Iinclude -mcmodel=large
-        gcc -m64 -c src/kernel/opensys.c -o obj/kernel/opensys.o \
+        gcc -m64 -c src/kernel/sys.c -o obj/kernel/sys.o \
           -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
           -Iinclude -mcmodel=large
-        gcc -m64 -c src/kernel/opensystem_calls.c -o obj/kernel/opensystem_calls.o \
+        gcc -m64 -c src/kernel/system_calls.c -o obj/kernel/system_calls.o \
           -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
           -Iinclude -mcmodel=large
-        gcc -m64 -c src/kernel/openelf.c -o obj/kernel/openelf.o \
+        gcc -m64 -c src/kernel/elf.c -o obj/kernel/elf.o \
           -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
           -Iinclude -mcmodel=large
-        gcc -m64 -c src/kernel/openelf_loader.c -o obj/kernel/openelf_loader.o \
+        gcc -m64 -c src/kernel/elf_loader.c -o obj/kernel/elf_loader.o \
           -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
           -Iinclude -mcmodel=large
-        gcc -m64 -c src/kernel/openstate_graph.c -o obj/kernel/openstate_graph.o \
+        gcc -m64 -c src/kernel/state_graph.c -o obj/kernel/state_graph.o \
           -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
           -Iinclude -mcmodel=large
-        gcc -m64 -c src/kernel/openintent_dispatcher.c -o obj/kernel/openintent_dispatcher.o \
+        gcc -m64 -c src/kernel/intent_dispatcher.c -o obj/kernel/intent_dispatcher.o \
           -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
           -Iinclude -mcmodel=large
-        gcc -m64 -c src/kernel/openswitch.c -o obj/kernel/openswitch.o \
+        gcc -m64 -c src/kernel/switch.c -o obj/kernel/switch.o \
           -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
           -Iinclude -mcmodel=large
 
         # Build memory management
-        gcc -m64 -c src/memory/openmemory.c -o obj/memory/openmemory.o \
+        gcc -m64 -c src/memory/memory.c -o obj/memory/memory.o \
           -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
           -Iinclude -mcmodel=large
-        gcc -m64 -c src/memory/openkheap.c -o obj/memory/openkheap.o \
+        gcc -m64 -c src/memory/kheap.c -o obj/memory/kheap.o \
           -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
           -Iinclude -mcmodel=large
-        gcc -m64 -c src/memory/openpaging.c -o obj/memory/openpaging.o \
+        gcc -m64 -c src/memory/paging.c -o obj/memory/paging.o \
           -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
           -Iinclude -mcmodel=large
 
         # Build filesystem
-        gcc -m64 -c src/fs/openfs.c -o obj/fs/openfs.o \
+        gcc -m64 -c src/fs/fs.c -o obj/fs/fs.o \
           -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
           -Iinclude -mcmodel=large
-        gcc -m64 -c src/fs/openvfs.c -o obj/fs/openvfs.o \
+        gcc -m64 -c src/fs/vfs.c -o obj/fs/vfs.o \
           -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
           -Iinclude -mcmodel=large
-        gcc -m64 -c src/fs/openramfs.c -o obj/fs/openramfs.o \
+        gcc -m64 -c src/fs/ramfs.c -o obj/fs/ramfs.o \
           -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
           -Iinclude -mcmodel=large
 
         # Build architecture
-        gcc -m64 -c src/arch/opengdt.c -o obj/arch/opengdt.o \
+        gcc -m64 -c src/arch/gdt.c -o obj/arch/gdt.o \
           -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
           -Iinclude -mcmodel=large
-        gcc -m64 -c src/arch/openidt.c -o obj/arch/openidt.o \
+        gcc -m64 -c src/arch/idt.c -o obj/arch/idt.o \
           -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
           -Iinclude -mcmodel=large
-        gcc -m64 -c src/arch/opentss.c -o obj/arch/opentss.o \
+        gcc -m64 -c src/arch/tss.c -o obj/arch/tss.o \
           -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
           -Iinclude -mcmodel=large
-        gcc -m64 -c src/arch/openpic.c -o obj/arch/openpic.o \
+        gcc -m64 -c src/arch/pic.c -o obj/arch/pic.o \
           -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
           -Iinclude -mcmodel=large
-        gcc -m64 -c src/arch/opentimer.c -o obj/arch/opentimer.o \
+        gcc -m64 -c src/arch/timer.c -o obj/arch/timer.o \
           -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
           -Iinclude -mcmodel=large
-        gcc -m64 -c src/arch/opencpu_exceptions.c -o obj/arch/opencpu_exceptions.o \
+        gcc -m64 -c src/arch/cpu_exceptions.c -o obj/arch/cpu_exceptions.o \
           -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
           -Iinclude -mcmodel=large
-        gcc -m64 -c src/arch/openinterrupt_handlers.c -o obj/arch/openinterrupt_handlers.o \
+        gcc -m64 -c src/arch/interrupt_handlers.c -o obj/arch/interrupt_handlers.o \
           -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
           -Iinclude -mcmodel=large
 
         # Build drivers
-        gcc -m64 -c src/drivers/opendisk.c -o obj/drivers/opendisk.o \
+        gcc -m64 -c src/drivers/disk.c -o obj/drivers/disk.o \
           -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
           -Iinclude -mcmodel=large
-        gcc -m64 -c src/drivers/openvga.c -o obj/drivers/openvga.o \
+        gcc -m64 -c src/drivers/vga.c -o obj/drivers/vga.o \
           -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
           -Iinclude -mcmodel=large
-        gcc -m64 -c src/drivers/openhid.c -o obj/drivers/openhid.o \
+        gcc -m64 -c src/drivers/hid.c -o obj/drivers/hid.o \
           -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
           -Iinclude -mcmodel=large
-        gcc -m64 -c src/drivers/openinput.c -o obj/drivers/openinput.o \
+        gcc -m64 -c src/drivers/input.c -o obj/drivers/input.o \
           -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
           -Iinclude -mcmodel=large
-        gcc -m64 -c src/drivers/openusb_host.c -o obj/drivers/openusb_host.o \
+        gcc -m64 -c src/drivers/usb_host.c -o obj/drivers/usb_host.o \
           -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
           -Iinclude -mcmodel=large
-        gcc -m64 -c src/drivers/openserial.c -o obj/drivers/openserial.o \
+        gcc -m64 -c src/drivers/serial.c -o obj/drivers/serial.o \
           -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
           -Iinclude -mcmodel=large
-        gcc -m64 -c src/drivers/openio.c -o obj/drivers/openio.o \
+        gcc -m64 -c src/drivers/io.c -o obj/drivers/io.o \
           -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
           -Iinclude -mcmodel=large
-        gcc -m64 -c src/drivers/openpart.c -o obj/drivers/openpart.o \
+        gcc -m64 -c src/drivers/part.c -o obj/drivers/part.o \
           -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
           -Iinclude -mcmodel=large
-        gcc -m64 -c src/drivers/openpartition_table.c -o obj/drivers/openpartition_table.o \
+        gcc -m64 -c src/drivers/partition_table.c -o obj/drivers/partition_table.o \
           -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
           -Iinclude -mcmodel=large
-        gcc -m64 -c src/drivers/openrtc.c -o obj/drivers/openrtc.o \
+        gcc -m64 -c src/drivers/rtc.c -o obj/drivers/rtc.o \
           -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
           -Iinclude -mcmodel=large
 
         # Build process management
-        gcc -m64 -c src/process/openprocess.c -o obj/process/openprocess.o \
+        gcc -m64 -c src/process/process.c -o obj/process/process.o \
           -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
           -Iinclude -mcmodel=large
-        gcc -m64 -c src/process/openscheduler.c -o obj/process/openscheduler.o \
+        gcc -m64 -c src/process/scheduler.c -o obj/process/scheduler.o \
           -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
           -Iinclude -mcmodel=large
-        gcc -m64 -c src/process/openprograms.c -o obj/process/openprograms.o \
+        gcc -m64 -c src/process/programs.c -o obj/process/programs.o \
           -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
           -Iinclude -mcmodel=large
-        gcc -m64 -c src/process/openvm.c -o obj/process/openvm.o \
+        gcc -m64 -c src/process/vm.c -o obj/process/vm.o \
           -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
           -Iinclude -mcmodel=large
 
         # Build UI
-        gcc -m64 -c src/ui/openshell.c -o obj/ui/openshell.o \
+        gcc -m64 -c src/ui/shell.c -o obj/ui/shell.o \
           -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
           -Iinclude -mcmodel=large
-        gcc -m64 -c src/ui/openui_command.c -o obj/ui/openui_command.o \
+        gcc -m64 -c src/ui/ui_command.c -o obj/ui/ui_command.o \
           -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
           -Iinclude -mcmodel=large
-        gcc -m64 -c src/ui/openui_state.c -o obj/ui/openui_state.o \
+        gcc -m64 -c src/ui/ui_state.c -o obj/ui/ui_state.o \
           -ffreestanding -O0 -Wall -Wextra -fno-exceptions -nostdlib -fno-builtin \
           -Iinclude -mcmodel=large
 
         # Link kernel
-        ld -m elf_x86_64 -T linker/linker.ld -nostdlib -o bin/openkernel.bin obj/boot.o obj/interrupts.o obj/context_switch.o obj/syscall.o obj/**/*.o
+        ld -m elf_x86_64 -T linker/linker.ld -nostdlib -o bin/plan0.bin obj/boot.o obj/interrupts.o obj/context_switch.o obj/syscall.o obj/**/*.o
 
     - name: Create bootable ISO
       run: |
         mkdir -p iso/boot/grub
-        cp bin/openkernel.bin iso/boot/kernel
+        cp bin/plan0.bin iso/boot/kernel
 
         cat > iso/boot/grub/grub.cfg << 'EOF'
         set timeout=5
         set default=0
 
-        menuentry "OpenSYS OS" {
+        menuentry "Plan 0" {
             multiboot /boot/kernel
             boot
         }
         EOF
 
-        grub-mkrescue -o bin/opensys-${{ github.ref_name }}.iso iso
+        grub-mkrescue -o bin/plan0-${{ github.ref_name }}.iso iso
 
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          bin/opensys-${{ github.ref_name }}.iso
-          bin/openkernel.bin
+          bin/plan0-${{ github.ref_name }}.iso
+          bin/plan0.bin
         generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
