@@ -40,6 +40,7 @@ typedef struct {
     int visible;
     int focused;
     uint32_t process_id;
+    node_id_t graph_id;           /* Corresponding state graph node ID */
 } window_t;
 
 // UI node state
@@ -55,6 +56,7 @@ typedef struct {
     char text[256];
     char value[256];
     void* extra_data;
+    node_id_t graph_id;           /* Corresponding state graph node ID */
 } node_t;
 
 // Process state

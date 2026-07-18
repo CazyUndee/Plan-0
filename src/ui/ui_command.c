@@ -188,16 +188,14 @@ command_result_t ui_translate_click(int x, int y) {
                         if (x >= node_x && x < node_x + node->width &&
                             y >= node_y && y < node_y + node->height) {
 
-                            result.intent = intent_click_node(0);  // TODO: Convert node->id to node_id_t
-                            // TODO: Implement focus intents
+                            result.intent = intent_click_node(node->graph_id);
                             return result;
                         }
                     }
                 }
 
                 // Clicked on window but no node - focus window
-                // TODO: Implement focus intents
-                result.intent = intent_click_node(0);  // TODO: Convert win->id to node_id_t
+                result.intent = intent_click_node(win->graph_id);
                 return result;
             }
         }
@@ -254,8 +252,10 @@ command_result_t cmd_close_window(const char* window_id) {
     
     window_t* win = ui_state_get_window(window_id);
     if (win) {
-        // TODO: Implement close window intent
+        result.intent = intent_create_window(0, "");
         result.intent.type = INTENT_DESTROY_WINDOW;
+        result.intent.target_id = win->graph_id;
+        win->id[0] = 0;
         terminal_writestring("Closed window: ");
         terminal_writestring_nl(window_id);
     } else {
@@ -272,7 +272,7 @@ command_result_t cmd_move_window(const char* window_id, int x, int y) {
     
     window_t* win = ui_state_get_window(window_id);
     if (win) {
-        result.intent = intent_move_window(0, x, y);
+        result.intent = intent_move_window(win->graph_id, x, y);
         terminal_writestring("Moved window ");
         terminal_writestring(window_id);
         terminal_writestring(" to ");
@@ -294,8 +294,10 @@ command_result_t cmd_focus_window(const char* window_id) {
 
     window_t* win = ui_state_get_window(window_id);
     if (win) {
-        // TODO: Implement focus window intent
+        result.intent = intent_create_window(0, "");
         result.intent.type = INTENT_FOCUS_WINDOW;
+        result.intent.target_id = win->graph_id;
+        ui_state_set_focus(window_id, "");
         terminal_writestring("Focused window: ");
         terminal_writestring_nl(window_id);
     } else {

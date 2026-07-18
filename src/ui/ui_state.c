@@ -73,137 +73,199 @@ static node_t* find_node(const char* id) {
     return NULL;
 }
 
+// Find window by graph ID
+static window_t* find_window_by_graph_id(node_id_t graph_id) {
+    for (int i = 0; i < MAX_WINDOWS; i++) {
+        if (g_state.windows[i].id[0] && g_state.windows[i].graph_id == graph_id) {
+            return &g_state.windows[i];
+        }
+    }
+    return NULL;
+}
+
+// Find node by graph ID
+static node_t* find_node_by_graph_id(node_id_t graph_id) {
+    for (int i = 0; i < MAX_NODES; i++) {
+        if (g_state.nodes[i].id[0] && g_state.nodes[i].graph_id == graph_id) {
+            return &g_state.nodes[i];
+        }
+    }
+    return NULL;
+}
+
 // Execute an intent (state mutation)
 int ui_state_execute_intent(intent_t* intent) {
     if (!intent) return -1;
     
     switch (intent->type) {
         case INTENT_CREATE_WINDOW: {
-            // TODO: Convert node_id_t to string for find_window
-            // window_t* win = find_window(intent->target_id);
-            // if (win) {
-            //     k_strcpy(win->title, intent->param1);
-            //     win->visible = 1;
-            //     return 0;
-            // }
+            window_t* win = find_window_by_graph_id(intent->target_id);
+            if (!win) {
+                /* Find empty slot and create window from intent */
+                for (int i = 0; i < MAX_WINDOWS; i++) {
+                    if (g_state.windows[i].id[0] == 0) {
+                        win = &g_state.windows[i];
+                        win->graph_id = intent->target_id;
+                        k_strcpy(win->title, intent->param1);
+                        win->x = intent->int_param1;
+                        win->y = intent->int_param2;
+                        win->width = 400;
+                        win->height = 300;
+                        win->visible = 1;
+                        win->focused = 0;
+                        win->process_id = intent->source_process_id;
+                        /* Generate a string ID from the graph ID */
+                        k_strcpy(win->id, "gwin_");
+                        uint64_t tmp = intent->target_id;
+                        for (int j = 0; j < 16; j++) {
+                            int nibble = (tmp >> (60 - j * 4)) & 0xF;
+                            win->id[5 + j] = nibble < 10 ? '0' + nibble : 'a' + nibble - 10;
+                        }
+                        win->id[21] = 0;
+                        g_state.window_count++;
+                        return 0;
+                    }
+                }
+            }
+            if (win) {
+                k_strcpy(win->title, intent->param1);
+                win->visible = 1;
+                return 0;
+            }
             return -1;
         }
 
         case INTENT_DESTROY_WINDOW: {
-            // TODO: Convert node_id_t to string for find_window
-            // window_t* win = find_window(intent->target_id);
-            // if (win) {
-            //     win->visible = 0;
-            //     win->id[0] = 0;  // Mark as deleted
-            //     g_state.window_count--;
-            //     return 0;
-            // }
+            window_t* win = find_window_by_graph_id(intent->target_id);
+            if (win) {
+                win->visible = 0;
+                win->id[0] = 0;
+                win->graph_id = 0;
+                g_state.window_count--;
+                return 0;
+            }
             return -1;
         }
 
         case INTENT_MOVE_WINDOW: {
-            // TODO: Convert node_id_t to string for find_window
-            // window_t* win = find_window(intent->target_id);
-            // if (win) {
-            //     win->x = intent->int_param1;
-            //     win->y = intent->int_param2;
-            //     return 0;
-            // }
+            window_t* win = find_window_by_graph_id(intent->target_id);
+            if (win) {
+                win->x = intent->int_param1;
+                win->y = intent->int_param2;
+                return 0;
+            }
             return -1;
         }
 
         case INTENT_RESIZE_WINDOW: {
-            // TODO: Convert node_id_t to string for find_window
-            // window_t* win = find_window(intent->target_id);
-            // if (win) {
-            //     win->width = intent->int_param1;
-            //     win->height = intent->int_param2;
-            //     return 0;
-            // }
+            window_t* win = find_window_by_graph_id(intent->target_id);
+            if (win) {
+                win->width = intent->int_param1;
+                win->height = intent->int_param2;
+                return 0;
+            }
             return -1;
         }
 
         case INTENT_SHOW_WINDOW: {
-            // TODO: Convert node_id_t to string for find_window
-            // window_t* win = find_window(intent->target_id);
-            // if (win) {
-            //     win->visible = intent->int_param1;
-            //     return 0;
-            // }
+            window_t* win = find_window_by_graph_id(intent->target_id);
+            if (win) {
+                win->visible = intent->int_param1;
+                return 0;
+            }
             return -1;
         }
 
         case INTENT_HIDE_WINDOW: {
-            // TODO: Convert node_id_t to string for find_window
-            // window_t* win = find_window(intent->target_id);
-            // if (win) {
-            //     win->visible = 0;
-            //     return 0;
-            // }
+            window_t* win = find_window_by_graph_id(intent->target_id);
+            if (win) {
+                win->visible = 0;
+                return 0;
+            }
             return -1;
         }
         
         case INTENT_CREATE_NODE: {
-            // TODO: Convert node_id_t to string for find_node
-            // node_t* node = find_node(intent->target_id);
-            // if (node) {
-            //     node->type = (node_type_t)intent->int_param1;
-            //     k_strcpy(node->parent_id, intent->param1);
-            //     node->visible = 1;
-            //     node->enabled = 1;
-            //     return 0;
-            // }
+            node_t* node = find_node_by_graph_id(intent->target_id);
+            if (!node) {
+                /* Find empty slot and create node */
+                for (int i = 0; i < MAX_NODES; i++) {
+                    if (g_state.nodes[i].id[0] == 0) {
+                        node = &g_state.nodes[i];
+                        node->graph_id = intent->target_id;
+                        node->type = (node_type_t)intent->int_param1;
+                        k_strcpy(node->parent_id, intent->param1);
+                        /* Generate string ID from graph ID */
+                        k_strcpy(node->id, "gnode_");
+                        uint64_t tmp = intent->target_id;
+                        for (int j = 0; j < 16; j++) {
+                            int nibble = (tmp >> (60 - j * 4)) & 0xF;
+                            node->id[6 + j] = nibble < 10 ? '0' + nibble : 'a' + nibble - 10;
+                        }
+                        node->id[22] = 0;
+                        node->visible = 1;
+                        node->enabled = 1;
+                        node->text[0] = 0;
+                        node->value[0] = 0;
+                        g_state.node_count++;
+                        return 0;
+                    }
+                }
+            }
+            if (node) {
+                node->type = (node_type_t)intent->int_param1;
+                k_strcpy(node->parent_id, intent->param1);
+                node->visible = 1;
+                node->enabled = 1;
+                return 0;
+            }
             return -1;
         }
 
         case INTENT_DESTROY_NODE: {
-            // TODO: Convert node_id_t to string for find_node
-            // node_t* node = find_node(intent->target_id);
-            // if (node) {
-            //     node->id[0] = 0;  // Mark as deleted
-            //     g_state.node_count--;
-            //     return 0;
-            // }
+            node_t* node = find_node_by_graph_id(intent->target_id);
+            if (node) {
+                node->id[0] = 0;
+                node->graph_id = 0;
+                g_state.node_count--;
+                return 0;
+            }
             return -1;
         }
 
         case INTENT_MOVE_NODE: {
-            // TODO: Convert node_id_t to string for find_node
-            // node_t* node = find_node(intent->target_id);
-            // if (node) {
-            //     node->x = intent->int_param1;
-            //     node->y = intent->int_param2;
-            //     return 0;
-            // }
+            node_t* node = find_node_by_graph_id(intent->target_id);
+            if (node) {
+                node->x = intent->int_param1;
+                node->y = intent->int_param2;
+                return 0;
+            }
             return -1;
         }
 
         case INTENT_SET_NODE_TEXT: {
-            // TODO: Convert node_id_t to string for find_node
-            // node_t* node = find_node(intent->target_id);
-            // if (node) {
-            //     k_strcpy(node->text, intent->param1);
-            //     return 0;
-            // }
+            node_t* node = find_node_by_graph_id(intent->target_id);
+            if (node) {
+                k_strcpy(node->text, intent->param1);
+                return 0;
+            }
             return -1;
         }
 
         case INTENT_SET_NODE_VALUE: {
-            // TODO: Convert node_id_t to string for find_node
-            // node_t* node = find_node(intent->target_id);
-            // if (node) {
-            //     k_strcpy(node->value, intent->param1);
-            //     return 0;
-            // }
+            node_t* node = find_node_by_graph_id(intent->target_id);
+            if (node) {
+                k_strcpy(node->value, intent->param1);
+                return 0;
+            }
             return -1;
         }
 
         case INTENT_CLICK_NODE: {
-            // TODO: Convert node_id_t to string for find_node
-            // node_t* node = find_node(intent->target_id);
-            // if (node && node->enabled && node->visible) {
-            //     return 0;
-            // }
+            node_t* node = find_node_by_graph_id(intent->target_id);
+            if (node && node->enabled && node->visible) {
+                return 0;
+            }
             return -1;
         }
         
@@ -253,6 +315,7 @@ int ui_state_create_window(const char* id, const char* title, int x, int y, int 
             g_state.windows[i].visible = 1;
             g_state.windows[i].focused = 0;
             g_state.windows[i].process_id = 0;
+            g_state.windows[i].graph_id = 0;
             g_state.window_count++;
             return i;
         }
@@ -279,6 +342,7 @@ int ui_state_create_node(const char* id, node_type_t type, const char* parent_id
             g_state.nodes[i].text[0] = 0;
             g_state.nodes[i].value[0] = 0;
             g_state.nodes[i].extra_data = NULL;
+            g_state.nodes[i].graph_id = 0;
             g_state.node_count++;
             return i;
         }
