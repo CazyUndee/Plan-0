@@ -23,6 +23,8 @@
 #include "multiboot.h"
 #include "vga.h"
 #include "serial.h"
+#include "pmm.h"
+#include "ps2_keyboard.h"
 #include "memory.h"
 #include "kheap.h"
 #include "paging.h"
