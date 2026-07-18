@@ -522,13 +522,6 @@ int acl_remove_permission(uint32_t process_id) {
     return -1;
 }
 
-// Simple memcpy implementation
-static void k_memcpy(void* dst, const void* src, size_t n) {
-    char* d = (char*)dst;
-    const char* s = (const char*)src;
-    while (n--) *d++ = *s++;
-}
-
 // System call interface
 error_t sys_intent_dispatch(void* intent_ptr) {
     if (!intent_ptr) return ERR_INVALID_PARAMS;
