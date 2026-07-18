@@ -30,7 +30,6 @@
 #include "idt.h"
 #include "timer.h"
 #include "tss.h"
-#include "pic.h"
 #include "interrupts.h"
 #include "disk.h"
 #include "scheduler.h"
