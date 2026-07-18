@@ -20,6 +20,7 @@ struct cpu_state {
 } __attribute__((packed));
 
 // PIC I/O
+void pic_init(void);
 void pic_remap(void);
 void pic_send_eoi(uint8_t irq);
 void irq_enable(uint8_t irq);

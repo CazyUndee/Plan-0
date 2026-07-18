@@ -8,16 +8,13 @@
 #include <stddef.h>
 #include "fs.h"
 #include "kheap.h"
+#include "disk.h"
 
 /* Filesystem state */
 static fs_boot_sector_t* boot_sector = 0;
 static uint8_t* mft_zone = 0;
 static uint8_t* cluster_bitmap = 0;
 static uint64_t current_time = 0;
-
-/* External disk operations */
-extern int disk_read(uint32_t lba, uint32_t count, void* buffer);
-extern int disk_write(uint32_t lba, uint32_t count, const void* buffer);
 
 /* MFT reserved entries */
 #define MFT_MFT          0  /* $MFT */

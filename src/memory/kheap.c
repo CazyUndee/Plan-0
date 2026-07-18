@@ -21,6 +21,8 @@
 #include "kheap.h"
 #include "memory.h"
 #include "vga.h"
+#include "pmm.h"
+#include "paging.h"
 #include <stddef.h>
 #include <stdint.h>
 
@@ -44,8 +46,6 @@ static kheap_block_t* heap_first = 0;
 static uint64_t bytes_used = 0;
 static uint64_t bytes_free = 0;
 
-extern void* pmm_alloc_page(void);
-extern void paging_map(uint64_t vaddr, uint64_t paddr, uint64_t flags);
 #define PAGE_PRESENT  0x01
 #define PAGE_WRITABLE 0x02
 

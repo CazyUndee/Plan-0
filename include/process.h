@@ -100,10 +100,16 @@ void process_yield(void);
 /* Create user process from ELF binary */
 pid_t process_create_user(const char* name, const void* elf_data, size_t elf_size);
 
+/* Get process by index */
+process_t* process_get_by_index(int i);
+
 /* Get current process's VM space */
 vm_space_t* process_current_vm(void);
 
 /* Get number of active processes */
 int process_get_count(void);
+
+/* Check and wake sleeping processes */
+void process_check_sleepers(void);
 
 #endif

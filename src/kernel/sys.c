@@ -14,24 +14,6 @@
 
 extern void syscall_entry(void);
 
-static void* syscall_table[] = {
-    /* 0: exit */     0,
-    /* 1: read */     0,
-    /* 2: write */    0,
-    /* 3: open */     0,
-    /* 4: close */    0,
-    /* 5: fork */     0,
-    /* 6: exec */     0,
-    /* 7: wait */     0,
-    /* 8: yield */    0,
-    /* 9: sleep */    0,
-    /* 10: getpid */  0,
-    /* 11: kill */    0,
-    /* 12: brk */     0,
-    /* 13: mmap */    0,
-    /* 14: munmap */  0,
-};
-
 static int sys_exit(int code) {
     (void)code;
     process_t* proc = process_current();

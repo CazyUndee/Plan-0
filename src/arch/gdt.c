@@ -3,6 +3,7 @@
  */
 
 #include <stdint.h>
+#include "tss.h"
 
 struct gdt_entry {
 uint16_t limit_low;
@@ -20,9 +21,6 @@ uint64_t base;
 
 static struct gdt_entry gdt[8];
 static struct gdt_ptr gdtr;
-
-extern void* tss;
-extern uint32_t tss_size(void);
 
 void gdt64_init(void) {
 uint64_t tss_addr = (uint64_t)&tss;

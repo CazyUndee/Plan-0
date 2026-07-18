@@ -116,4 +116,7 @@ int gpt_read_partition(uint32_t index, uint64_t offset, uint32_t size, void* buf
 /* Print GPT info (debug) */
 void gpt_print_info(void);
 
+/* List all partitions */
+int gpt_list_partitions(void);
+
 #endif

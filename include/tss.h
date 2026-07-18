@@ -7,7 +7,11 @@
 
 #include <stdint.h>
 
-typedef struct {
+typedef struct tss tss_t;
+
+extern tss_t tss;
+
+typedef struct tss {
     uint32_t reserved0;
     uint64_t rsp0;      /* Stack pointer for ring 0 */
     uint64_t rsp1;      /* Stack pointer for ring 1 */

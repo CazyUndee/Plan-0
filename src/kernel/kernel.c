@@ -51,23 +51,6 @@
 #include "rtc.h"
 #include "vfs.h"
 
-extern void paging_init(void);
-extern void idt_init(void);
-extern void pic_init(void);
-extern int fs_mount(void);
-extern int fs_format(uint64_t disk_size);
-extern void timer_init(void);
-extern void process_init(void);
-extern pid_t process_create(const char* name, process_entry_t entry, void* arg);
-extern pid_t process_create_user(const char* name, const void* elf_data, size_t elf_size);
-extern void shell_run(void);
-extern int usb_init(void);
-extern int usb_enumerate(void);
-extern int ehci_init(void);
-extern int net_init(void);
-extern int state_graph_load_from_mft(void);
-extern int state_graph_sync_to_mft(node_id_t node_id);
-
 void kernel_main(uint64_t magic, uint64_t mbi) {
     terminal_initialize();
     serial_init();

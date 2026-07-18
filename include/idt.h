@@ -84,4 +84,7 @@ extern void irq9(void);   extern void irq10(void);  extern void irq11(void);
 extern void irq12(void);  extern void irq13(void);  extern void irq14(void);
 extern void irq15(void);
 
+/* Assembly syscall handler */
+extern void syscall_entry(void);
+
 #endif

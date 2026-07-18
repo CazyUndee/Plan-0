@@ -44,6 +44,7 @@ void free_pages(void* ptr, size_t pages);
 // Memory mapping
 int map_physical(uint64_t physical, void* virtual, size_t size, uint32_t flags);
 int unmap_physical(void* virtual, size_t size);
+void paging_map(uint64_t vaddr, uint64_t paddr, uint64_t flags);
 void paging_map_huge(uint64_t vaddr, uint64_t paddr, uint64_t flags);
 
 #endif // PAGING_H

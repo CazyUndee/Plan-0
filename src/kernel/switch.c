@@ -25,15 +25,6 @@
 /* Assembly context switch */
 extern void context_switch(uint64_t* old_ctx, uint64_t* new_ctx);
 
-/* External scheduler functions */
-extern process_t* process_current(void);
-extern void scheduler_set_current(process_t* proc);
-extern int scheduler_needs_reschedule(void);
-extern void scheduler_clear_reschedule(void);
-extern void process_check_sleepers(void);
-extern process_t* scheduler_pick(void);
-extern void scheduler_add(process_t* proc);
-extern void scheduler_tick(void);
 
 /* Main scheduler - called from timer interrupt */
 void switch_schedule(void) {

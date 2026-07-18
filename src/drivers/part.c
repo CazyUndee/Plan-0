@@ -19,17 +19,12 @@
  */
 
 #include "part.h"
+#include "disk.h"
+#include "gpt.h"
 #include "memory.h"
 #include "vga.h"
 #include <stddef.h>
 #include <stdint.h>
-
-// External disk and GPT functions
-extern int disk_init(void);
-extern int disk_read(uint32_t lba, uint32_t count, void* buffer);
-extern int disk_write(uint32_t lba, uint32_t count, const void* buffer);
-extern int gpt_init(void);
-extern int gpt_list_partitions(void);
 
 // Initialize Part system
 void part_init(void) {

@@ -26,7 +26,19 @@ void scheduler_tick(void);
 /* Force immediate reschedule */
 void scheduler_reschedule(void);
 
+/* Set current running process */
+void scheduler_set_current(process_t* proc);
+
+/* Check if reschedule is needed */
+int scheduler_needs_reschedule(void);
+
+/* Clear reschedule flag */
+void scheduler_clear_reschedule(void);
+
 /* Get number of runnable processes */
 int scheduler_runnable_count(void);
+
+/* Context switch (assembly) */
+void context_switch(uint64_t* old_ctx, uint64_t* new_ctx);
 
 #endif

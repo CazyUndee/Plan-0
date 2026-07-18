@@ -25,7 +25,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define PAGE_SIZE       4096
 #define PAGE_PRESENT    0x01
 #define PAGE_WRITABLE   0x02
 #define PAGE_USER       0x04

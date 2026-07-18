@@ -90,13 +90,10 @@ static void cmd_ps(void) {
     terminal_writestring_nl("  PID  Name        Active    Window");
     terminal_writestring_nl("  ---  ----------  --------  ------");
 
-    extern ui_process_t* process_get_by_index(int i);
-    extern int process_get_count(void);
-
     int count = 0;
     for (int i = 0; i < 64; i++) {
-        ui_process_t* p = process_get_by_index(i);
-        if (p && p->active) {
+        process_t* p = process_get_by_index(i);
+        if (p && p->state != PROC_STATE_UNUSED) {
             terminal_writestring("  ");
             terminal_put_dec(p->pid);
             terminal_writestring("  ");
@@ -105,9 +102,9 @@ static void cmd_ps(void) {
             int namelen = k_strlen(p->name);
             for (int j = namelen; j < 10; j++) terminal_putchar(' ');
 
-            terminal_writestring(p->active ? "YES       " : "NO        ");
+            terminal_writestring(p->state == PROC_STATE_RUNNING ? "YES       " : "NO        ");
 
-            terminal_put_dec(p->main_window_id);
+            terminal_put_dec(0);
             terminal_writestring_nl("");
             count++;
         }

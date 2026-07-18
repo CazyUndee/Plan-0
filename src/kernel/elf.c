@@ -8,6 +8,7 @@
 #include "vm.h"
 #include "pmm.h"
 #include "kheap.h"
+#include "process.h"
 
 int elf_validate(const void* data) {
     const elf64_header_t* hdr = (const elf64_header_t*)data;
@@ -39,7 +40,6 @@ int elf_load(const void* data, size_t size, elf_info_t* info) {
     if (elf_validate(data) < 0) return -1;
     
     /* Get current address space */
-    extern vm_space_t* process_current_vm(void);
     vm_space_t* space = process_current_vm();
     if (!space) return -1;
     
