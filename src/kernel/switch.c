@@ -23,7 +23,7 @@
 #include <stdint.h>
 
 /* Assembly context switch */
-extern void context_switch(uint64_t* old_ctx, uint64_t* new_ctx);
+extern void context_switch(cpu_context_t* old_ctx, cpu_context_t* new_ctx);
 
 
 /* Main scheduler - called from timer interrupt */
@@ -51,7 +51,7 @@ void switch_schedule(void) {
         scheduler_clear_reschedule();
         
         /* Jump to new process */
-        context_switch(0, (uint64_t*)&next->context);
+        context_switch(0, &next->context);
         return;
     }
     
@@ -65,7 +65,7 @@ void switch_schedule(void) {
     scheduler_clear_reschedule();
     
     /* Perform context switch */
-    context_switch((uint64_t*)&current->context, (uint64_t*)&next->context);
+    context_switch(&current->context, &next->context);
 }
 
 /* Called from timer interrupt */

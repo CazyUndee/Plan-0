@@ -39,6 +39,6 @@ void scheduler_clear_reschedule(void);
 int scheduler_runnable_count(void);
 
 /* Context switch (assembly) */
-void context_switch(uint64_t* old_ctx, uint64_t* new_ctx);
+void context_switch(cpu_context_t* old_ctx, cpu_context_t* new_ctx);
 
 #endif

@@ -20,9 +20,6 @@ static process_t process_table[MAX_PROCESSES];
 static pid_t next_pid = 1;
 static process_t* idle_process = 0;
 
-/* Assembly context switch */
-extern void context_switch(cpu_context_t* old_ctx, cpu_context_t* new_ctx);
-
 /* Find a free process slot */
 static process_t* alloc_process(void) {
     for (int i = 0; i < MAX_PROCESSES; i++) {
