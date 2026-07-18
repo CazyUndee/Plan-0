@@ -9,7 +9,7 @@
 
 typedef struct tss tss_t;
 
-extern tss_t tss;
+extern tss_t* tss;
 
 typedef struct tss {
     uint32_t reserved0;
