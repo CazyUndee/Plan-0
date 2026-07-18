@@ -530,8 +530,8 @@ error_t sys_intent_dispatch(void* intent_ptr) {
     intent_t intent;
     k_memcpy(&intent, intent_ptr, sizeof(intent_t));
     
-    // Set source process ID (would get from current process)
-    intent.source_process_id = 1;  // TODO: Get actual process ID
+    // Set source process ID (will use scheduler's current process when available)
+    intent.source_process_id = 1;
     
     return intent_dispatch(&intent);
 }

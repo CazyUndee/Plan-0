@@ -146,7 +146,6 @@ void kernel_main(uint64_t magic, uint64_t mbi) {
 		memory_init(mbi);
 		paging_init();
 		kheap_init(0xFFFF800000000000ULL, 64 * 1024 * 1024);
-		// fs_init();  // TODO: Implement fs_init
 
 		// Phase 2: Load MFT UI records into kernel-space State Graph
 		terminal_writestring("[BOOT] Phase 2: Loading State Graph from MFT...\n");
@@ -168,7 +167,6 @@ void kernel_main(uint64_t magic, uint64_t mbi) {
 
 		// Phase 5: Start Input listener
 		terminal_writestring("[BOOT] Phase 5: Starting Input System...\n");
-		// input_init();  // TODO: Implement input_init
 		
 		// Phase 6: Spawn Shell (CLI) and GUI Renderer as first two "Observer" processes
 		terminal_writestring("[BOOT] Phase 6: Starting UI Processes...\n");

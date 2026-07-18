@@ -21,4 +21,7 @@ typedef struct __attribute__((packed)) {
     uint32_t dst;
 } ipv4_header_t;
 
+/* IP checksum (ones' complement of 16-bit words) */
+uint16_t ip_checksum16(void* data, uint16_t len);
+
 #endif

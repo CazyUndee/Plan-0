@@ -11,7 +11,7 @@
 /* ICMP handler (declared in icmp.c) */
 int icmp_handle_packet(const ipv4_header_t* ip, const void* data, uint16_t len);
 
-static uint16_t ip_checksum16(void* data, uint16_t len) {
+uint16_t ip_checksum16(void* data, uint16_t len) {
     uint32_t sum = 0;
     uint16_t* ptr = (uint16_t*)data;
     for (int i = 0; i < len / 2; i++) {
