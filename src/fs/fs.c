@@ -638,9 +638,118 @@ size_t fs_write(fs_file_t* file, const void* buffer, size_t size) {
         
         /* Check if we have space */
         if (file->position + size > MFT_ENTRY_SIZE - entry->used_size) {
-            /* Convert to non-resident */
-            /* TODO: Implement resident -> non-resident conversion */
-            return 0;
+            /* --- Convert resident to non-resident --- */
+            size_t existing_size = data_attr->length - sizeof(attr_header_t);
+            
+            /* Save existing resident data before modifying the attribute */
+            uint8_t existing_data[MFT_ENTRY_SIZE];
+            for (size_t i = 0; i < existing_size; i++) {
+                existing_data[i] = data[i];
+            }
+            
+            /* Calculate total data size after write */
+            uint64_t write_end = file->position + size;
+            uint64_t total_end = (write_end > existing_size) ? write_end : existing_size;
+            uint64_t clusters_needed = (total_end + FS_CLUSTER_SIZE - 1) / FS_CLUSTER_SIZE;
+            if (clusters_needed == 0) clusters_needed = 1;
+            
+            /* Convert attribute to non-resident */
+            data_attr->non_resident = 1;
+            uint32_t new_attr_len = sizeof(attr_header_t) + sizeof(attr_nonresident_t) 
+                                  + (uint32_t)(clusters_needed * sizeof(data_run_t));
+            data_attr->length = new_attr_len;
+            
+            /* Initialize non-resident header */
+            attr_nonresident_t* nr = (attr_nonresident_t*)((uint8_t*)data_attr + sizeof(attr_header_t));
+            nr->start_vcn = 0;
+            nr->last_vcn = clusters_needed - 1;
+            nr->run_offset = sizeof(attr_header_t) + sizeof(attr_nonresident_t);
+            nr->comp_unit_size = 0;
+            nr->reserved = 0;
+            nr->allocated_size = 0;
+            nr->real_size = 0;
+            nr->initialized_size = 0;
+            
+            /* Allocate data runs */
+            data_run_t* runs = (data_run_t*)((uint8_t*)data_attr + nr->run_offset);
+            uint64_t clusters_allocated = 0;
+            for (uint64_t i = 0; i < clusters_needed; i++) {
+                uint64_t new_cluster = alloc_cluster();
+                if (new_cluster == (uint64_t)-1) break;
+                runs[clusters_allocated].start_cluster = new_cluster;
+                runs[clusters_allocated].length = 1;
+                clusters_allocated++;
+            }
+            
+            if (clusters_allocated == 0) return 0;
+            
+            /* Write existing resident data to clusters */
+            for (uint64_t i = 0; i < clusters_allocated; i++) {
+                uint8_t cluster_buf[FS_CLUSTER_SIZE];
+                for (size_t z = 0; z < FS_CLUSTER_SIZE; z++) cluster_buf[z] = 0;
+                
+                uint64_t copy_start = i * FS_CLUSTER_SIZE;
+                if (copy_start < existing_size) {
+                    uint64_t copy_size = FS_CLUSTER_SIZE;
+                    if (copy_start + copy_size > existing_size) {
+                        copy_size = existing_size - copy_start;
+                    }
+                    for (uint64_t j = 0; j < copy_size; j++) {
+                        cluster_buf[j] = existing_data[copy_start + j];
+                    }
+                }
+                write_cluster(runs[i].start_cluster, cluster_buf);
+            }
+            
+            /* Overlay new data from buffer onto clusters */
+            const uint8_t* buf = (const uint8_t*)buffer;
+            size_t bytes_written = 0;
+            while (bytes_written < size) {
+                uint64_t cluster_idx = (file->position + bytes_written) / FS_CLUSTER_SIZE;
+                if (cluster_idx >= clusters_allocated) break;
+                
+                uint64_t cluster = runs[cluster_idx].start_cluster;
+                uint64_t offset_in_cluster = (file->position + bytes_written) % FS_CLUSTER_SIZE;
+                
+                uint64_t to_write = FS_CLUSTER_SIZE - offset_in_cluster;
+                if (to_write > size - bytes_written) {
+                    to_write = size - bytes_written;
+                }
+                
+                /* Read-modify-write this cluster */
+                uint8_t cluster_buf[FS_CLUSTER_SIZE];
+                read_cluster(cluster, cluster_buf);
+                for (uint64_t j = 0; j < to_write; j++) {
+                    cluster_buf[offset_in_cluster + j] = buf[bytes_written + j];
+                }
+                write_cluster(cluster, cluster_buf);
+                
+                bytes_written += to_write;
+            }
+            
+            /* Update non-resident header */
+            nr->allocated_size = clusters_allocated * FS_CLUSTER_SIZE;
+            nr->real_size = (file->position + bytes_written > existing_size) 
+                          ? (file->position + bytes_written) : existing_size;
+            nr->initialized_size = nr->real_size;
+            
+            file->position += bytes_written;
+            
+            /* Update file size */
+            attr_filename_t* fn = find_attr(entry, ATTR_FILENAME);
+            if (fn) {
+                fn->real_size = file->position;
+                fn->modify_time = get_time();
+            }
+            
+            /* Move ATTR_END to right after the new non-resident attribute */
+            attr_header_t* end = (attr_header_t*)((uint8_t*)data_attr + new_attr_len);
+            end->type = ATTR_END;
+            end->length = 8;
+            entry->used_size = (uint32_t)((uint8_t*)end + 8 - (uint8_t*)entry);
+            
+            write_mft_entry(file->mft_number, entry);
+            return bytes_written;
         }
         
         for (size_t i = 0; i < size; i++) {
@@ -737,7 +846,20 @@ int fs_unlink(const char* path) {
     /* Free data clusters if non-resident */
     attr_header_t* data_attr = find_attr(entry, ATTR_DATA);
     if (data_attr && data_attr->non_resident) {
-        /* TODO: Free non-resident data clusters */
+        attr_nonresident_t* nr = (attr_nonresident_t*)((uint8_t*)data_attr + sizeof(attr_header_t));
+        data_run_t* runs = (data_run_t*)((uint8_t*)data_attr + nr->run_offset);
+        uint64_t num_runs = nr->last_vcn - nr->start_vcn + 1;
+        
+        for (uint64_t i = 0; i < num_runs; i++) {
+            for (uint64_t j = 0; j < runs[i].length; j++) {
+                uint64_t cluster = runs[i].start_cluster + j;
+                uint64_t byte = cluster / 8;
+                uint64_t bit = cluster % 8;
+                if (byte < (boot_sector->total_clusters + 7) / 8) {
+                    cluster_bitmap[byte] &= ~(1 << bit);
+                }
+            }
+        }
     }
     
     /* Clear MFT entry */
