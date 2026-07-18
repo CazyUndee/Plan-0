@@ -55,9 +55,9 @@ void kheap_init(uint64_t start, uint64_t size) {
     
     /* Allocate and map heap pages */
     for (uint64_t addr = start; addr < start + size; addr += 4096) {
-        void* phys = pmm_alloc_page();
+        phys_addr_t phys = pmm_alloc_page();
         if (phys) {
-            paging_map(addr, (uint64_t)phys, PAGE_WRITABLE);
+            paging_map(addr, phys, PAGE_WRITABLE);
         }
     }
     

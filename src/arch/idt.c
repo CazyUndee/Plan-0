@@ -34,7 +34,7 @@ static struct idt_ptr idtr;
 /* Kernel code selector */
 #define KERNEL_CS 0x08
 
-static void idt_set_gate(int n, uint64_t handler) {
+static void idt_set_isr(int n, uint64_t handler) {
     idt[n].offset_low = handler & 0xFFFF;
     idt[n].offset_mid = (handler >> 16) & 0xFFFF;
     idt[n].offset_high = (handler >> 32) & 0xFFFFFFFF;
@@ -72,55 +72,55 @@ void idt_init(void) {
 		idt[i].reserved = 0;
 	}
 
-	idt_set_gate(0, (uint64_t)isr0);
-    idt_set_gate(1, (uint64_t)isr1);
-    idt_set_gate(2, (uint64_t)isr2);
-    idt_set_gate(3, (uint64_t)isr3);
-    idt_set_gate(4, (uint64_t)isr4);
-    idt_set_gate(5, (uint64_t)isr5);
-    idt_set_gate(6, (uint64_t)isr6);
-    idt_set_gate(7, (uint64_t)isr7);
-    idt_set_gate(8, (uint64_t)isr8);
-    idt_set_gate(9, (uint64_t)isr9);
-    idt_set_gate(10, (uint64_t)isr10);
-    idt_set_gate(11, (uint64_t)isr11);
-    idt_set_gate(12, (uint64_t)isr12);
-    idt_set_gate(13, (uint64_t)isr13);
-    idt_set_gate(14, (uint64_t)isr14);
-    idt_set_gate(15, (uint64_t)isr15);
-    idt_set_gate(16, (uint64_t)isr16);
-    idt_set_gate(17, (uint64_t)isr17);
-    idt_set_gate(18, (uint64_t)isr18);
-    idt_set_gate(19, (uint64_t)isr19);
-    idt_set_gate(20, (uint64_t)isr20);
-    idt_set_gate(21, (uint64_t)isr21);
-    idt_set_gate(22, (uint64_t)isr22);
-    idt_set_gate(23, (uint64_t)isr23);
-    idt_set_gate(24, (uint64_t)isr24);
-    idt_set_gate(25, (uint64_t)isr25);
-    idt_set_gate(26, (uint64_t)isr26);
-    idt_set_gate(27, (uint64_t)isr27);
-    idt_set_gate(28, (uint64_t)isr28);
-    idt_set_gate(29, (uint64_t)isr29);
-    idt_set_gate(30, (uint64_t)isr30);
-    idt_set_gate(31, (uint64_t)isr31);
+	idt_set_isr(0, (uint64_t)isr0);
+    idt_set_isr(1, (uint64_t)isr1);
+    idt_set_isr(2, (uint64_t)isr2);
+    idt_set_isr(3, (uint64_t)isr3);
+    idt_set_isr(4, (uint64_t)isr4);
+    idt_set_isr(5, (uint64_t)isr5);
+    idt_set_isr(6, (uint64_t)isr6);
+    idt_set_isr(7, (uint64_t)isr7);
+    idt_set_isr(8, (uint64_t)isr8);
+    idt_set_isr(9, (uint64_t)isr9);
+    idt_set_isr(10, (uint64_t)isr10);
+    idt_set_isr(11, (uint64_t)isr11);
+    idt_set_isr(12, (uint64_t)isr12);
+    idt_set_isr(13, (uint64_t)isr13);
+    idt_set_isr(14, (uint64_t)isr14);
+    idt_set_isr(15, (uint64_t)isr15);
+    idt_set_isr(16, (uint64_t)isr16);
+    idt_set_isr(17, (uint64_t)isr17);
+    idt_set_isr(18, (uint64_t)isr18);
+    idt_set_isr(19, (uint64_t)isr19);
+    idt_set_isr(20, (uint64_t)isr20);
+    idt_set_isr(21, (uint64_t)isr21);
+    idt_set_isr(22, (uint64_t)isr22);
+    idt_set_isr(23, (uint64_t)isr23);
+    idt_set_isr(24, (uint64_t)isr24);
+    idt_set_isr(25, (uint64_t)isr25);
+    idt_set_isr(26, (uint64_t)isr26);
+    idt_set_isr(27, (uint64_t)isr27);
+    idt_set_isr(28, (uint64_t)isr28);
+    idt_set_isr(29, (uint64_t)isr29);
+    idt_set_isr(30, (uint64_t)isr30);
+    idt_set_isr(31, (uint64_t)isr31);
 
-    idt_set_gate(32, (uint64_t)irq0);
-    idt_set_gate(33, (uint64_t)irq1);
-    idt_set_gate(34, (uint64_t)irq2);
-    idt_set_gate(35, (uint64_t)irq3);
-    idt_set_gate(36, (uint64_t)irq4);
-    idt_set_gate(37, (uint64_t)irq5);
-    idt_set_gate(38, (uint64_t)irq6);
-    idt_set_gate(39, (uint64_t)irq7);
-    idt_set_gate(40, (uint64_t)irq8);
-    idt_set_gate(41, (uint64_t)irq9);
-    idt_set_gate(42, (uint64_t)irq10);
-    idt_set_gate(43, (uint64_t)irq11);
-    idt_set_gate(44, (uint64_t)irq12);
-    idt_set_gate(45, (uint64_t)irq13);
-    idt_set_gate(46, (uint64_t)irq14);
-    idt_set_gate(47, (uint64_t)irq15);
+    idt_set_isr(32, (uint64_t)irq0);
+    idt_set_isr(33, (uint64_t)irq1);
+    idt_set_isr(34, (uint64_t)irq2);
+    idt_set_isr(35, (uint64_t)irq3);
+    idt_set_isr(36, (uint64_t)irq4);
+    idt_set_isr(37, (uint64_t)irq5);
+    idt_set_isr(38, (uint64_t)irq6);
+    idt_set_isr(39, (uint64_t)irq7);
+    idt_set_isr(40, (uint64_t)irq8);
+    idt_set_isr(41, (uint64_t)irq9);
+    idt_set_isr(42, (uint64_t)irq10);
+    idt_set_isr(43, (uint64_t)irq11);
+    idt_set_isr(44, (uint64_t)irq12);
+    idt_set_isr(45, (uint64_t)irq13);
+    idt_set_isr(46, (uint64_t)irq14);
+    idt_set_isr(47, (uint64_t)irq15);
 
     /* Syscall vector (0x80) */
     idt_set_syscall_gate(0x80, (uint64_t)syscall_entry);

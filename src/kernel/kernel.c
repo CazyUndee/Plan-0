@@ -48,6 +48,7 @@
 #include "ui_command.h"
 #include "intent_dispatcher.h"
 #include "syscall.h"
+#include "shell.h"
 #include "rtc.h"
 #include "vfs.h"
 
